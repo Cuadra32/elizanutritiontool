@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#2E7D32">
+<title>Nutrition Plan Generator v1.2</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f0f4f0;color:#1a1a1a;min-height:100vh}
+.wrap{max-width:660px;margin:0 auto;padding:24px 16px 60px}
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+.hdr h1{font-size:19px;font-weight:700}
+.hdr p{font-size:12px;color:#666;margin-top:3px}
+.hdr-r{display:flex;flex-direction:column;align-items:flex-end;gap:7px}
+.badge{font-size:11px;font-weight:700;color:#2E7D32;background:#e8f5e9;border:1px solid #81c784;border-radius:5px;padding:3px 8px}
+.ltog{display:flex;gap:3px}
+.lbtn{font-size:13px;font-weight:700;padding:6px 14px;border:1px solid #ccc;border-radius:6px;background:white;color:#666;cursor:pointer;font-family:inherit;min-height:36px;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.lbtn.on{background:#e8f5e9;border-color:#2E7D32;color:#1b5e20}
+.card{background:white;border-radius:10px;padding:18px 20px;margin-bottom:12px;border:1px solid #e0e0e0}
+.ctitle{font-size:11px;font-weight:700;color:#2E7D32;letter-spacing:.07em;text-transform:uppercase;margin-bottom:14px}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:13px}
+.field:last-child{margin-bottom:0}
+.field label{font-size:13px;font-weight:600;color:#444}
+.field input,.field select,.field textarea{font-family:inherit;font-size:16px;color:#1a1a1a;background:#f8f8f8;border:1.5px solid #ddd;border-radius:8px;padding:12px 14px;width:100%;outline:none;-webkit-appearance:none;appearance:none;min-height:48px}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#2E7D32;background:white}
+.field textarea{min-height:64px;resize:vertical;font-size:15px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.mcard{background:#f1f8f1;border-radius:8px;padding:10px 6px;text-align:center}
+.mval{font-size:17px;font-weight:700;color:#2E7D32}
+.munit{font-size:10px;color:#888;text-transform:uppercase;margin-top:1px}
+.mlbl{font-size:11px;color:#555;margin-top:2px}
+/* Training toggle */
+.tog{border:1.5px solid #bbdefb;border-radius:10px;margin-bottom:12px;background:white}
+.tog-hdr{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:rgba(21,101,192,0.1);user-select:none;-webkit-user-select:none;border-radius:10px}
+.tog-lbl{font-size:13px;font-weight:700;color:#1565c0}
+.tog-sub{font-size:12px;color:#777;margin-top:2px}
+.tog-ico{font-size:28px;font-weight:300;color:#1565c0;line-height:1;width:32px;text-align:center}
+.tog-body{padding:0 20px 20px;display:none;border-top:1px solid #e3f2fd}
+.tog-body.open{display:block}
+/* Checkboxes */
+.eq-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px}
+.eq-item{display:flex;align-items:center;gap:0;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:rgba(21,101,192,0.1)}
+.eq-item input[type=checkbox]{display:none}
+.eq-box{width:100%;padding:11px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;color:#444;background:#f8f8f8;display:flex;align-items:center;gap:8px;transition:all .15s;min-height:44px;font-family:inherit}
+.eq-item input:checked + .eq-box{border-color:#1565c0;background:#e3f2fd;color:#0d47a1;font-weight:600}
+.eq-check{width:18px;height:18px;border:2px solid #aaa;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.eq-item input:checked + .eq-box .eq-check{background:#1565c0;border-color:#1565c0}
+.eq-item input:checked + .eq-box .eq-check::after{content:'';width:5px;height:9px;border:2px solid white;border-top:none;border-left:none;transform:rotate(45deg) translateY(-1px);display:block}
+/* Buttons */
+.genbtn{width:100%;padding:16px;font-family:inherit;font-size:17px;font-weight:700;color:white;background:#2E7D32;border:none;border-radius:10px;cursor:pointer;margin-bottom:10px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;min-height:54px;letter-spacing:.02em}
+.genbtn:active{background:#1b5e20;transform:scale(.98)}
+.genbtn:disabled{background:#9e9e9e;cursor:not-allowed;transform:none}
+.errbox{background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;padding:14px 16px;font-size:14px;color:#b91c1c;margin-bottom:10px;display:none}
+.okbox{background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:16px 18px;margin-bottom:10px;display:none;align-items:flex-start;gap:12px}
+.okbox .ick{font-size:26px;line-height:1;margin-top:2px}
+.okbox .otxt{font-size:15px;font-weight:700;color:#166534}
+.okbox .osub{font-size:13px;color:#15803d;margin-top:4px;line-height:1.5}
+@media(max-width:420px){.g2{grid-template-columns:1fr}.g4{grid-template-columns:repeat(2,1fr)}.eq-grid{grid-template-columns:1fr}}
+</style>
+
+</head>
+<body>
+
+<div class="wrap">
+  <div class="hdr">
+    <div>
+      <h1 id="htitle">Nutrition Plan Generator</h1>
+      <p id="hsub">Generates a plan you save as PDF</p>
+    </div>
+    <div class="hdr-r">
+      <span class="badge">v1.2</span>
+      <div class="ltog">
+        <button class="lbtn" onclick="setLang('fr')">FR</button>
+        <button class="lbtn on" onclick="setLang('en')">EN</button>
+        <button class="lbtn" onclick="setLang('pl')">PL</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle" id="lc">Client Information</div>
+    <div class="field"><label id="ln">Full name</label><input id="fname" placeholder="e.g. John Smith" autocomplete="name" type="text"></div>
+    <div class="g2">
+      <div class="field"><label id="la">Age</label><input id="fage" type="number" placeholder="40" min="10" max="100" inputmode="numeric"></div>
+      <div class="field"><label id="ls">Sex</label>
+        <select id="fsex"><option value="male" id="om">Male</option><option value="female" id="of">Female</option></select>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="field"><label id="lw">Weight (kg)</label><input id="fweight" type="number" placeholder="80" inputmode="decimal"></div>
+      <div class="field"><label id="lh">Height (cm)</label><input id="fheight" type="number" placeholder="175" inputmode="numeric"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle" id="lp">Plan Configuration</div>
+    <div class="g2">
+      <div class="field"><label id="lg">Goal</label>
+        <select id="fgoal">
+          <option value="recomposition" id="gr">Recomposition</option>
+          <option value="fat_loss" id="gf">Fat loss</option>
+          <option value="muscle_gain" id="gm">Muscle gain</option>
+          <option value="maintenance" id="gma">Maintenance</option>
+          <option value="improve_fitness" id="gif">Improve fitness</option>
+          <option value="power_agility" id="gpa">Power &amp; agility (rugby/sport)</option>
+        </select>
+      </div>
+      <div class="field"><label id="lact">Activity</label>
+        <select id="factivity">
+          <option value="sedentary" id="as">Sedentary</option>
+          <option value="light" id="al">Light (1-2x/wk)</option>
+          <option value="moderate" id="amo">Moderate (3-4x/wk)</option>
+          <option value="active" id="aac" selected>Active (cycling+gym)</option>
+          <option value="very_active" id="av">Very active</option>
+        </select>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="field"><label id="ldi">Diet</label>
+        <select id="fdiet">
+          <option value="omnivore" id="do">Omnivore</option>
+          <option value="vegetarian" id="dv">Vegetarian</option>
+          <option value="pescatarian" id="dp">Pescatarian</option>
+          <option value="nofish" id="dnf">No fish (meat)</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label id="lno">Coach notes (optional)</label>
+      <textarea id="fnotes" placeholder="e.g. nut allergy, knee pain..."></textarea>
+    </div>
+    <div class="field"><label id="lnn">Nutrition notes (optional)</label>
+      <textarea id="fnutnotes" placeholder="e.g. client eats out 3x/week, prefers no supplements..."></textarea>
+    </div>
+  </div>
+
+  <!-- Training toggle -->
+  <div class="tog">
+    <div class="tog-hdr" onclick="togTrain(event)">
+      <div>
+        <div class="tog-lbl" id="ttl">+ Add training plan (optional)</div>
+        <div class="tog-sub" id="tsb">Adds a training section to the plan</div>
+      </div>
+      <div class="tog-ico" id="tico">&#8964;</div>
+    </div>
+    <div class="tog-body" id="tbody">
+      <div class="g2" style="margin-top:16px">
+        <div class="field"><label id="lexp">Experience</label>
+          <select id="fexp">
+            <option value="beginner" id="eb">Beginner (0-1 yr)</option>
+            <option value="intermediate" id="ei" selected>Intermediate (1-3 yrs)</option>
+            <option value="advanced" id="ea">Advanced (3+ yrs)</option>
+          </select>
+        </div>
+        <div class="field"><label id="ldays">Days / week</label>
+          <select id="fdays">
+            <option value="2">2 days</option>
+            <option value="3" selected>3 days</option>
+            <option value="4">4 days</option>
+            <option value="5">5 days</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label id="leq" style="margin-bottom:2px">Equipment</label>
+        <div class="eq-grid">
+          <label class="eq-item"><input type="checkbox" id="eqgym" checked><span class="eq-box"><span class="eq-check"></span><span id="eqgl">Gym / Barbells</span></span></label>
+          <label class="eq-item"><input type="checkbox" id="eqkb" checked><span class="eq-box"><span class="eq-check"></span><span id="eqkl">Kettlebells</span></span></label>
+          <label class="eq-item"><input type="checkbox" id="eqdb"><span class="eq-box"><span class="eq-check"></span><span id="eqdl">Dumbbells</span></span></label>
+          <label class="eq-item"><input type="checkbox" id="eqbw" checked><span class="eq-box"><span class="eq-check"></span><span id="eqbl">Bodyweight</span></span></label>
+          <label class="eq-item"><input type="checkbox" id="eqband"><span class="eq-box"><span class="eq-check"></span><span id="eqbal">Bands</span></span></label>
+        </div>
+      </div>
+      <div class="field"><label id="ltn">Training notes</label>
+        <textarea id="ftnotes" placeholder="e.g. right knee pain, avoid heavy squats..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Macro preview -->
+  <div class="card" id="macrocard" style="display:none">
+    <div class="ctitle" id="lmac">Macro preview</div>
+    <div class="g4">
+      <div class="mcard"><div class="mval" id="mcal">-</div><div class="munit">kcal</div><div class="mlbl" id="mcall">Calories</div></div>
+      <div class="mcard"><div class="mval" id="mprot">-</div><div class="munit">g/day</div><div class="mlbl" id="mprotl">Protein</div></div>
+      <div class="mcard"><div class="mval" id="mcarb">-</div><div class="munit">g/day</div><div class="mlbl" id="mcarbl">Carbs</div></div>
+      <div class="mcard"><div class="mval" id="mfat">-</div><div class="munit">g/day</div><div class="mlbl" id="mfatl">Fats</div></div>
+    </div>
+  </div>
+
+  <div id="errbox" class="errbox"></div>
+  <div id="okbox" class="okbox">
+    <div class="ick">&#10003;</div>
+    <div>
+      <div class="otxt" id="okmsg">Plan ready!</div>
+      <div class="osub" id="oksub"></div>
+    </div>
+  </div>
+
+  <button class="genbtn" id="genbtn" onclick="generate()">
+    <span id="genlbl">&#128196; Generate Plan</span>
+  </button>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+
+var UI = 'en', trainOpen = false;
+
+var TX = {
+  en:{htitle:'Nutrition Plan Generator',hsub:'Generates a plan — save as PDF via browser',lc:'Client Information',ln:'Full name',la:'Age',ls:'Sex',lw:'Weight (kg)',lh:'Height (cm)',lp:'Plan Configuration',lg:'Goal',lact:'Activity',ldi:'Diet',ldl:'Language',lno:'Coach notes (optional)',lnn:'Nutrition notes (optional)',coachContact:'elizaskander@yahoo.com | www.elizaskander.com',ttl:'+ Add training plan (optional)',tsb:'Adds a training section to the plan',lexp:'Experience',ldays:'Days / week',leq:'Equipment',ltn:'Training notes',lmac:'Macro preview',mcall:'Calories',mprotl:'Protein',mcarbl:'Carbs',mfatl:'Fats',om:'Male',of:'Female',gr:'Recomposition',gf:'Fat loss',gm:'Muscle gain',gma:'Maintenance',gif:'Improve fitness',gpa:'Power & agility (sport)',as:'Sedentary',al:'Light (1-2x/wk)',amo:'Moderate (3-4x/wk)',aac:'Active (cycling+gym)',av:'Very active',do:'Omnivore',dv:'Vegetarian',dp:'Pescatarian',dnf:'No fish (meat)',eb:'Beginner (0-1 yr)',ei:'Intermediate (1-3 yrs)',ea:'Advanced (3+ yrs)',eqgl:'Gym / Barbells',eqkl:'Kettlebells',eqdl:'Dumbbells',eqbl:'Bodyweight',eqbal:'Bands',genlbl:'&#128196; Generate Plan',genloading:'Building plan...',okmsg:'Plan ready!',oksub:'The print dialog opened automatically. Choose "Save as PDF".\n\nOn iPhone: tap the Share button then "Print" to save as PDF.',errname:'Name is required.',errage:'Invalid age.',errweight:'Invalid weight.',errheight:'Invalid height.',pfname:'e.g. John Smith',pfnotes:'e.g. nut allergy, avoid gluten...',pftnotes:'e.g. right knee pain, avoid heavy squats...'},
+  fr:{htitle:'Generateur de plan nutritionnel',hsub:'Genere un plan — enregistrer en PDF via le navigateur',lc:'Informations client',ln:'Nom complet',la:'Age',ls:'Sexe',lw:'Poids (kg)',lh:'Taille (cm)',lp:'Configuration du plan',lg:'Objectif',lact:'Activite',ldi:'Alimentation',ldl:'Langue',lno:'Notes coach (optionnel)',lnn:'Notes nutritionnelles (optionnel)',coachContact:'elizaskander@yahoo.com | www.elizaskander.com',ttl:'+ Ajouter un plan d entrainement',tsb:'Ajoute une section entrainement au plan',lexp:'Experience',ldays:'Jours / sem',leq:'Equipement',ltn:'Notes entrainement',lmac:'Apercu macros',mcall:'Calories',mprotl:'Proteines',mcarbl:'Glucides',mfatl:'Lipides',om:'Homme',of:'Femme',gr:'Recomposition',gf:'Perte de graisse',gm:'Prise de masse',gma:'Maintien',gif:'Ameliorer la condition physique',gpa:'Puissance & agilite (sport/rugby)',as:'Sedentaire',al:'Leger (1-2x/sem)',amo:'Modere (3-4x/sem)',aac:'Actif (velo+fitness)',av:'Tres actif',do:'Omnivore',dv:'Vegetarien',dp:'Pescetarien',dnf:'Sans poisson (viande)',eb:'Debutant (0-1 an)',ei:'Intermediaire (1-3 ans)',ea:'Avance (3+ ans)',eqgl:'Salle / Barres',eqkl:'Kettlebells',eqdl:'Halteres',eqbl:'Poids du corps',eqbal:'Elastiques',genlbl:'&#128196; Generer le plan',genloading:'Construction...',okmsg:'Plan pret !',oksub:'La fenetre d impression s est ouverte automatiquement. Choisir "Enregistrer en PDF".\n\nSur iPhone : bouton Partager puis "Imprimer" pour enregistrer en PDF.',errname:'Le nom est requis.',errage:'Age invalide.',errweight:'Poids invalide.',errheight:'Taille invalide.',pfname:'ex. Gilles Vallon',pfnotes:'ex. Allergie noix, eviter gluten...',pftnotes:'ex. Douleur genou droit, eviter squats lourds...'},
+  pl:{htitle:'Generator planu zywieniowego',hsub:'Generuje plan - zapisz jako PDF przez przegladarke',lc:'Dane klienta',ln:'Imie i nazwisko',la:'Wiek',ls:'Plec',lw:'Waga (kg)',lh:'Wzrost (cm)',lp:'Konfiguracja planu',lg:'Cel',lact:'Aktywnosc',ldi:'Dieta',ldl:'Jezyk',lno:'Notatki trenera (opcjonalne)',lnn:'Notatki zywieniowe (opcjonalne)',coachContact:'elizaskander@yahoo.com | www.elizaskander.com',ttl:'+ Dodaj plan treningowy (opcjonalnie)',tsb:'Dodaje sekcje treningowa do planu',lexp:'Doswiadczenie',ldays:'Dni / tydzien',leq:'Sprzet',ltn:'Notatki treningowe',lmac:'Podglad makro',mcall:'Kalorie',mprotl:'Bialko',mcarbl:'Weglowodany',mfatl:'Tluszcze',om:'Mezczyzna',of:'Kobieta',gr:'Rekompozycja',gf:'Redukcja tluszczu',gm:'Budowa masy',gma:'Utrzymanie',gif:'Poprawa kondycji',gpa:'Moc i zwinnosc (sport/rugby)',as:'Siedzacy',al:'Lekki (1-2x/tydz)',amo:'Umiarkowany (3-4x/tydz)',aac:'Aktywny (rower+silownia)',av:'Bardzo aktywny',do:'Wszerozerna',dv:'Wegetarianska',dp:'Pesketarianska',dnf:'Bez ryb (mieso)',eb:'Poczatkujacy (0-1 r)',ei:'Sredniozaawansowany (1-3 l)',ea:'Zaawansowany (3+ l)',eqgl:'Silownia / Sztangi',eqkl:'Kettlebell',eqdl:'Hantle',eqbl:'Masa ciala',eqbal:'Gumy oporowe',genlbl:'Wygeneruj plan',genloading:'Tworzenie planu...',okmsg:'Plan gotowy!',oksub:'Okno drukowania otworzono automatycznie. Wybierz Zapisz jako PDF.\n\nNa iPhonie: kliknij Udostepnij, potem Drukuj.',errname:'Imie jest wymagane.',errage:'Nieprawidlowy wiek.',errweight:'Nieprawidlowa waga.',errheight:'Nieprawidlowy wzrost.',pfname:'np. Jan Kowalski',pfnotes:'np. alergia na orzechy, unikac glutenu...',pftnotes:'np. bol prawego kolana, unikac przysiadow...'}
+};
+
+function setLang(l) {
+  UI = l;
+  document.querySelectorAll('.lbtn').forEach(function(b,i){ b.classList.toggle('on',['fr','en','pl'][i]===l); });
+  var t = TX[l];
+  var ids = {htitle:'htitle',hsub:'hsub',lc:'lc',ln:'ln',la:'la',ls:'ls',lw:'lw',lh:'lh',lp:'lp',lg:'lg',lact:'lact',ldi:'ldi',lno:'lno',ttl:'ttl',tsb:'tsb',lexp:'lexp',ldays:'ldays',leq:'leq',ltn:'ltn',lmac:'lmac',mcall:'mcall',mprotl:'mprotl',mcarbl:'mcarbl',mfatl:'mfatl',om:'om',of:'of',gr:'gr',gf:'gf',gm:'gm',gma:'gma',as:'as',al:'al',amo:'amo',aac:'aac',av:'av',do:'do',dv:'dv',dp:'dp',eb:'eb',ei:'ei',ea:'ea',eqgl:'eqgl',eqkl:'eqkl',eqdl:'eqdl',eqbl:'eqbl',eqbal:'eqbal',genlbl:'genlbl'};
+  Object.keys(ids).forEach(function(k){ var el=document.getElementById(k); if(el){ if(k==='genlbl') el.innerHTML=t[k]; else el.textContent=t[k]; } });
+  document.getElementById('fname').placeholder=t.pfname;
+  document.getElementById('fnotes').placeholder=t.pfnotes;
+  document.getElementById('fnutnotes').placeholder=t.pfnutnotes||t.pfnotes;
+  document.getElementById('ftnotes').placeholder=t.pftnotes;
+  updateMacros();
+}
+
+function togTrain(e) {
+  if(e) e.stopPropagation();
+  trainOpen = !trainOpen;
+  document.getElementById('tbody').classList.toggle('open', trainOpen);
+  document.getElementById('tico').innerHTML = trainOpen ? '&#8963;' : '&#8964;';
+  document.getElementById('ttl').textContent = (trainOpen ? '- ' : '+ ') + (UI==='fr' ? 'Plan d entrainement' : 'Training plan');
+}
+
+function calcM(w,h,a,sex,act,goal) {
+  var bmr = 10*w+6.25*h-5*a+(sex==='male'?5:-161);
+  var am={sedentary:1.2,light:1.375,moderate:1.55,active:1.725,very_active:1.9};
+  var tdee=Math.round(bmr*(am[act]||1.55));
+  var off={fat_loss:[-400,-200],muscle_gain:[150,300],maintenance:[0,0],improve_fitness:[-100,100],power_agility:[50,200]}[goal]||[-150,50];
+  var cl=tdee+off[0],ch=tdee+off[1];
+  var pm=goal==='muscle_gain'?2.2:goal==='fat_loss'?2.0:goal==='power_agility'?2.0:1.8;
+  var pl=Math.round(w*(pm-0.2)),ph=Math.round(w*pm);
+  var cp=goal==='fat_loss'?0.30:goal==='power_agility'?0.52:(act==='very_active'?0.48:act==='active'?0.44:0.40);
+  var cbl=Math.round(cl*cp/4),cbh=Math.round(ch*(cp+0.04)/4);
+  var fl=Math.round(cl*0.25/9),fh=Math.round(ch*0.30/9);
+  return {cl:cl,ch:ch,pl:pl,ph:ph,cbl:cbl,cbh:cbh,fl:fl,fh:fh,tdee:tdee};
+}
+
+function updateMacros() {
+  var w=parseFloat(document.getElementById('fweight').value);
+  var h=parseFloat(document.getElementById('fheight').value);
+  var a=parseInt(document.getElementById('fage').value);
+  if(!(w>=30&&h>=100&&a>=10)){document.getElementById('macrocard').style.display='none';return;}
+  var m=calcM(w,h,a,document.getElementById('fsex').value,document.getElementById('factivity').value,document.getElementById('fgoal').value);
+  document.getElementById('mcal').textContent=m.cl+'-'+m.ch;
+  document.getElementById('mprot').textContent=m.pl+'-'+m.ph;
+  document.getElementById('mcarb').textContent=m.cbl+'-'+m.cbh;
+  document.getElementById('mfat').textContent=m.fl+'-'+m.fh;
+  document.getElementById('macrocard').style.display='block';
+}
+
+['fweight','fheight','fage','fsex','factivity','fgoal'].forEach(function(id){
+  var el=document.getElementById(id); if(!el) return;
+  el.addEventListener('input',updateMacros);
+  el.addEventListener('change',updateMacros);
+});
+
+function showErr(msg){
+  var b=document.getElementById('errbox');
+  b.textContent=msg; b.style.display='block';
+  document.getElementById('okbox').style.display='none';
+}
+
+function generate() {
+  document.getElementById('errbox').style.display='none';
+  document.getElementById('okbox').style.display='none';
+  var t=TX[UI];
+  var name=document.getElementById('fname').value.trim();
+  var age=parseInt(document.getElementById('fage').value)||0;
+  var sex=document.getElementById('fsex').value;
+  var weight=parseFloat(document.getElementById('fweight').value)||0;
+  var height=parseFloat(document.getElementById('fheight').value)||0;
+  var goal=document.getElementById('fgoal').value;
+  var act=document.getElementById('factivity').value;
+  var diet=document.getElementById('fdiet').value;
+  var notes=document.getElementById('fnotes').value.trim();
+  var nutnotes=document.getElementById('fnutnotes').value.trim();
+  var doclang=UI;
+  if(!name){showErr(t.errname);return;}
+  if(age<10||age>100){showErr(t.errage);return;}
+  if(weight<30||weight>300){showErr(t.errweight);return;}
+  if(height<100||height>250){showErr(t.errheight);return;}
+  var training=trainOpen?{exp:document.getElementById('fexp').value,days:parseInt(document.getElementById('fdays').value),gym:document.getElementById('eqgym').checked,kb:document.getElementById('eqkb').checked,db:document.getElementById('eqdb').checked,bw:document.getElementById('eqbw').checked,band:document.getElementById('eqband').checked,notes:document.getElementById('ftnotes').value.trim()}:null;
+  var btn=document.getElementById('genbtn');
+  btn.disabled=true;
+  document.getElementById('genlbl').innerHTML=t.genloading;
+  setTimeout(function(){
+    try {
+      var html=buildPlanHTML({name:name,age:age,sex:sex,weight:weight,height:height,goal:goal,act:act,diet:diet,notes:notes,nutnotes:nutnotes,lang:doclang,training:training});
+      var win=window.open('','_blank');
+      if(!win){
+        // popup blocked - show inline instead
+        var d=document.createElement('div');
+        d.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:9999;overflow:auto;padding:20px';
+        d.innerHTML='<button onclick="document.body.removeChild(this.parentNode)" style="position:fixed;top:10px;right:10px;padding:8px 16px;background:#2E7D32;color:white;border:none;border-radius:6px;font-size:14px;cursor:pointer;z-index:10000">&#x2715; Close</button>'+html;
+        document.body.appendChild(d);
+      } else {
+        win.document.open();
+        win.document.write(html);
+        win.document.close();
+        setTimeout(function(){ try{ win.focus(); win.print(); }catch(e){} }, 800);
+      }
+      document.getElementById('okmsg').textContent=t.okmsg;
+      document.getElementById('oksub').textContent=t.oksub;
+      document.getElementById('okbox').style.display='flex';
+    } catch(err) {
+      showErr('Error: '+err.message+' — '+err.stack);
+    }
+    btn.disabled=false;
+    document.getElementById('genlbl').innerHTML=t.genlbl;
+  },100);
+}
+
+// ── PLAN HTML BUILDER ─────────────────────────────────────────────────────────
+function buildPlanHTML(d) {
+  var FR=d.lang==='fr';
+  var PL=d.lang==='pl';
+  var m=calcM(d.weight,d.height,d.age,d.sex,d.act,d.goal);
+  function t(f,e,p){return FR?f:(PL&&p!==undefined?p:e);}
+
+  var goalL={recomposition:t('Prise de muscle & perte de graisse','Muscle gain & fat loss','Budowa miesni i utrata tluszczu'),fat_loss:t('Perte de graisse','Fat loss','Redukcja tluszczu'),muscle_gain:t('Prise de masse','Muscle gain','Budowa masy'),maintenance:t('Maintien','Maintenance','Utrzymanie'),improve_fitness:t('Ameliorer la condition physique','Improve fitness','Poprawa kondycji'),power_agility:t('Puissance & agilite (sport)','Power & agility (sport)','Moc i zwinnosc (sport)')}[d.goal]||d.goal;
+  var actL={sedentary:t('Sedentaire','Sedentary','Siedzacy'),light:t('Leger','Light','Lekki'),moderate:t('Modere','Moderate','Umiarkowany'),active:t('Actif (velo+fitness)','Active (cycling+gym)','Aktywny (rower+silownia)'),very_active:t('Tres actif','Very active','Bardzo aktywny')}[d.act]||d.act;
+  var bP=Math.round(m.pl*.22),lP=Math.round(m.pl*.32),dP=Math.round(m.pl*.28),sP=Math.round(m.pl*.14);
+  var carbG=d.act==='active'||d.act==='very_active'?180:d.act==='moderate'?150:100;
+  var isOld=d.age>=50,isMus=d.goal==='muscle_gain',isFat=d.goal==='fat_loss';
+  var isAct=d.act==='active'||d.act==='very_active',isSed=d.act==='sedentary'||d.act==='light',isMod=d.act==='moderate';
+  var isVeg=d.diet==='vegetarian',isPesc=d.diet==='pescatarian',isNoFish=d.diet==='nofish';
+  var isPow=d.goal==='power_agility',isImprove=d.goal==='improve_fitness';
+  var deficit=Math.round(m.tdee-(m.cl+m.ch)/2),surplus=Math.round((m.cl+m.ch)/2-m.tdee);
+  var pPerKg=Math.round(m.pl/d.weight*10)/10;
+
+  function sec(title,color){
+    var cls=color==='blue'?'blue-head':'';
+    return '<h2'+(cls?' class="'+cls+'"':'')+'>'+title+'</h2>';
+  }
+  function sub(title,color){
+    var cls=color==='blue'?'blue-h3':'';
+    return '<h3'+(cls?' class="'+cls+'"':'')+'>'+title+'</h3>';
+  }
+  function box(lines,bg){
+    var cls='box ';
+    if(bg==='#e8f5e9'||bg==='#f0faf0') cls+='box-green';
+    else if(bg==='#e3f2fd'||bg==='#e8f1fb') cls+='box-blue';
+    else if(bg==='#fff3e0'||bg==='#fff8e1') cls+='box-amber';
+    else cls+='box-grey';
+    return '<div class="'+cls+'">'+lines.map(function(l){return '<p>'+l+'</p>';}).join('')+'</div>';
+  }
+  function bul(items){return '<ul>'+items.map(function(i){return '<li>'+i+'</li>';}).join('')+'</ul>';}
+  function ytLink(name){
+    var q=encodeURIComponent(name+' exercise tutorial');
+    return '<a href="https://www.youtube.com/results?search_query='+q+'" target="_blank" style="color:#1565c0;text-decoration:none;border-bottom:1px dotted #1565c0" title="Watch on YouTube">'+name+' &#9654;</a>';
+  }
+  function tbl(headers,rows,widths,linkFirstCol,blueHead){
+    var thCls=blueHead?' class="blue-th"':'';
+    var s='<table><thead><tr>';
+    headers.forEach(function(h,i){s+='<th'+thCls+' style="width:'+(widths[i]*100)+'%">'+h+'</th>';});
+    s+='</tr></thead><tbody>';
+    rows.forEach(function(r,ri){
+      s+='<tr style="background:'+(ri%2===0?'white':'#f7fbf7')+'">';
+      r.forEach(function(c,ci){
+        var cell=(linkFirstCol&&ci===0)?ytLink(c):c;
+        s+='<td>'+cell+'</td>';
+      });
+      s+='</tr>';
+    });
+    return s+'</tbody></table>';
+  }
+
+  // Strategy text
+  var s1=FR?(isOld&&isFat?'A '+d.age+' ans, un deficit de '+deficit+' kcal/jour combine a '+m.pl+'-'+m.ph+'g de proteines preservera le muscle tout en eliminant la graisse.':isOld?'A '+d.age+' ans, synthese proteique reduite ~30%. Cle : '+m.pl+'-'+m.ph+'g proteines/jour ('+pPerKg+'g/kg) repartis sur tous les repas.':isAct&&isMus?'TDEE estime '+m.tdee+' kcal. Surplus de +'+surplus+' kcal/jour avec '+m.pl+'-'+m.ph+'g proteines pour construire du muscle efficacement.':isSed&&isFat?'Avec peu d activite, la perte de graisse se joue dans l assiette. Deficit '+deficit+' kcal/jour avec '+m.pl+'-'+m.ph+'g proteines.':isPow?'Pour la puissance et l agilite en sport, les glucides sont le carburant principal. La strategie combine '+m.pl+'-'+m.ph+'g de proteines pour la recuperation musculaire et '+m.cbl+'-'+m.cbh+'g de glucides pour l energie explosive.':isImprove?'Pour ameliorer la condition physique, la cle est une alimentation equilibree soutenant l energie et la recuperation. TDEE estime '+m.tdee+' kcal avec '+m.pl+'-'+m.ph+'g de proteines/jour.':'Distribution precise des proteines ('+m.pl+'-'+m.ph+'g/jour = '+pPerKg+'g/kg) autour du TDEE estime de '+m.tdee+' kcal.')
+  :PL?(isOld&&isFat?'W wieku '+d.age+' lat, deficyt '+deficit+' kcal/dzien z '+m.pl+'-'+m.ph+'g bialka spali tluszcz zachowujac miesnie.':isOld?'W wieku '+d.age+' lat synteza bialkowa jest zmniejszona ~30%. Klucz: '+m.pl+'-'+m.ph+'g bialka/dzien ('+pPerKg+'g/kg) rozlozonych na wszystkie posilki.':isAct&&isMus?'Szacowane TDEE '+m.tdee+' kcal. Nadwyzka +'+surplus+' kcal/dzien z '+m.pl+'-'+m.ph+'g bialka dla efektywnej budowy masy.':isSed&&isFat?'Przy malej aktywnosci utrata tluszczu zalezy od diety. Deficyt '+deficit+' kcal/dzien z '+m.pl+'-'+m.ph+'g bialka.':isPow?'Dla mocy i zwinnosci w sporcie weglowodany sa glownym paliwem. Strategia laczy '+m.pl+'-'+m.ph+'g bialka dla regeneracji i '+m.cbl+'-'+m.cbh+'g weglowodanow dla eksplozywnej wydajnosci.':isImprove?'Dla poprawy kondycji kluczem jest zbilansowane odzywanie wspierajace energie i regeneracje. Szacowane TDEE '+m.tdee+' kcal z '+m.pl+'-'+m.ph+'g bialka/dzien.':'Precyzyjna dystrybucja bialka ('+m.pl+'-'+m.ph+'g/dzien = '+pPerKg+'g/kg) wokol szacowanego TDEE '+m.tdee+' kcal.')
+  :(isOld&&isFat?'At '+d.age+', a deficit of '+deficit+' kcal/day with '+m.pl+'-'+m.ph+'g protein will burn fat while preserving muscle.':isOld?'At '+d.age+', protein synthesis is reduced ~30%. Key: '+m.pl+'-'+m.ph+'g protein/day ('+pPerKg+'g/kg) spread across all meals.':isAct&&isMus?'Estimated TDEE '+m.tdee+' kcal. Fuel with +'+surplus+' kcal/day surplus and '+m.pl+'-'+m.ph+'g protein to build muscle efficiently.':isSed&&isFat?'With low activity, fat loss is driven by nutrition. '+deficit+' kcal/day deficit with '+m.pl+'-'+m.ph+'g protein will burn fat efficiently.':isPow?'For power and agility in sport, carbohydrates are the primary fuel. The strategy combines '+m.pl+'-'+m.ph+'g protein for muscle recovery and '+m.cbl+'-'+m.cbh+'g carbs to fuel explosive performance.':isImprove?'To improve fitness, the key is balanced nutrition supporting energy and recovery. Estimated TDEE '+m.tdee+' kcal with '+m.pl+'-'+m.ph+'g protein/day.':'Precise protein distribution ('+m.pl+'-'+m.ph+'g/day = '+pPerKg+'g/kg) around your estimated TDEE of '+m.tdee+' kcal.');
+
+  // Dinner options
+  var DINN={omnivore:{fr:[['Option oeufs','3 oeufs+2 blancs+legumes+fromage (~'+dP+'g)'],['Option poulet','150g poulet grille+legumes+riz (~'+(dP+5)+'g)'],['Option poisson','150g saumon/poisson+legumes (~'+dP+'g)'],['Option boeuf','130g boeuf maigre+legumes+fromage (~'+(dP+3)+'g)'],['Option legumineuses','200g lentilles+legumes+2 oeufs (~'+(dP-3)+'g)']],en:[['Eggs','3 eggs+2 whites+roasted veg+cheese (~'+dP+'g)'],['Chicken','150g grilled chicken+roasted veg+rice (~'+(dP+5)+'g)'],['Fish','150g salmon/white fish+steamed veg (~'+dP+'g)'],['Beef','130g lean beef+veg+cheese (~'+(dP+3)+'g)'],['Legumes','200g lentils+roasted veg+2 eggs (~'+(dP-3)+'g)']],pl:[['Jajka','3 jajka+2 bialka+warzywa+ser (~'+dP+'g)'],['Kurczak','150g grillowanego kurczaka+warzywa+ryz (~'+(dP+5)+'g)'],['Ryba','150g lososia/bialej ryby+warzywa (~'+dP+'g)'],['Wolowina','130g chudej wolowiny+warzywa+ser (~'+(dP+3)+'g)'],['Leguminy','200g soczewicy+warzywa+2 jajka (~'+(dP-3)+'g)']]},nofish:{fr:[['Option oeufs','3 oeufs+2 blancs+legumes+fromage (~'+dP+'g)'],['Option poulet','150g poulet grille+legumes+riz (~'+(dP+5)+'g)'],['Option boeuf','130g boeuf maigre+legumes+fromage (~'+(dP+3)+'g)'],['Option legumineuses','200g lentilles+legumes+2 oeufs (~'+(dP-3)+'g)'],['Option dinde','150g dinde+legumes+riz (~'+(dP+4)+'g)']],en:[['Eggs','3 eggs+2 whites+roasted veg+cheese (~'+dP+'g)'],['Chicken','150g grilled chicken+roasted veg+rice (~'+(dP+5)+'g)'],['Beef','130g lean beef+veg+cheese (~'+(dP+3)+'g)'],['Legumes','200g lentils+roasted veg+2 eggs (~'+(dP-3)+'g)'],['Turkey','150g turkey+veg+rice (~'+(dP+4)+'g)']],pl:[['Jajka','3 jajka+2 bialka+warzywa+ser (~'+dP+'g)'],['Kurczak','150g grillowanego kurczaka+warzywa+ryz (~'+(dP+5)+'g)'],['Wolowina','130g chudej wolowiny+warzywa+ser (~'+(dP+3)+'g)'],['Leguminy','200g soczewicy+warzywa+2 jajka (~'+(dP-3)+'g)'],['Indyk','150g indyka+warzywa+ryz (~'+(dP+4)+'g)']]},vegetarian:{fr:[['Option oeufs','3 oeufs+2 blancs+legumes+fromage (~'+dP+'g)'],['Option tofu','180g tofu saute+legumes+riz (~'+(dP-2)+'g)'],['Option lentilles','220g lentilles+legumes+oeuf (~'+(dP-4)+'g)'],['Option pois chiches','220g pois chiches+legumes+tahini (~'+(dP-6)+'g)'],['Fromage blanc','200g fromage blanc 0%+crudites (~'+(dP-8)+'g)']],en:[['Eggs','3 eggs+2 whites+roasted veg+cheese (~'+dP+'g)'],['Tofu','180g firm tofu+veg+rice (~'+(dP-2)+'g)'],['Lentils','220g lentils+roasted veg+egg (~'+(dP-4)+'g)'],['Chickpeas','220g chickpeas+veg+tahini (~'+(dP-6)+'g)'],['Cottage cheese','200g cottage cheese+veg (~'+(dP-8)+'g)']],pl:[['Jajka','3 jajka+2 bialka+warzywa+ser (~'+dP+'g)'],['Tofu','180g twardego tofu+warzywa+ryz (~'+(dP-2)+'g)'],['Soczewica','220g soczewicy+warzywa+jajko (~'+(dP-4)+'g)'],['Ciecierzyca','220g ciecierzycy+warzywa+tahini (~'+(dP-6)+'g)'],['Twarog','200g twarogu 0%+surowe warzywa (~'+(dP-8)+'g)']]},pescatarian:{fr:[['Option saumon','150g saumon+legumes+quinoa (~'+(dP+3)+'g)'],['Option thon','150g thon+legumes+2 oeufs (~'+(dP+5)+'g)'],['Option crevettes','180g crevettes+legumes+riz (~'+(dP+2)+'g)'],['Option oeufs','3 oeufs+2 blancs+legumes (~'+dP+'g)'],['Option lentilles','200g lentilles+poisson blanc (~'+dP+'g)']],en:[['Salmon','150g salmon+veg+quinoa (~'+(dP+3)+'g)'],['Tuna','150g tuna+veg+2 eggs (~'+(dP+5)+'g)'],['Prawns','180g prawns+wok veg+rice (~'+(dP+2)+'g)'],['Eggs','3 eggs+2 whites+roasted veg (~'+dP+'g)'],['Lentils','200g lentils+veg+white fish (~'+dP+'g)']],pl:[['Losos','150g lososia+warzywa+quinoa (~'+(dP+3)+'g)'],['Tunczyk','150g tunczyka+warzywa+2 jajka (~'+(dP+5)+'g)'],['Krevety','180g krevet+warzywa wok+ryz (~'+(dP+2)+'g)'],['Jajka','3 jajka+2 bialka+warzywa (~'+dP+'g)'],['Soczewica','200g soczewicy+warzywa+biala ryba (~'+dP+'g)']]}};
+  var dOpts=(DINN[d.diet]||DINN.omnivore)[FR?'fr':PL?'pl':'en'];
+
+  var actW={active:[t('Fitness+Velo','Gym+Cycling','Silownia+Rower'),t('Velo','Cycling','Rower'),t('Fitness+Velo','Gym+Cycling','Silownia+Rower'),t('Velo','Cycling','Rower'),t('Fitness+Velo','Gym+Cycling','Silownia+Rower'),t('Actif','Active','Aktywny'),t('Repos','Rest','Odpoczynek')],very_active:[t('Fitness','Gym','Silownia'),t('Fitness','Gym','Silownia'),t('Fitness+Cardio','Gym+Cardio','Silownia+Cardio'),t('Fitness','Gym','Silownia'),t('Fitness','Gym','Silownia'),t('Cardio','Cardio','Cardio'),t('Repos','Rest','Odpoczynek')],moderate:[t('Fitness','Gym','Silownia'),t('Repos','Rest','Odpoczynek'),t('Fitness','Gym','Silownia'),t('Repos','Rest','Odpoczynek'),t('Fitness','Gym','Silownia'),t('Actif','Active','Aktywny'),t('Repos','Rest','Odpoczynek')],light:[t('Fitness','Gym','Silownia'),t('Repos','Rest','Odpoczynek'),t('Repos','Rest','Odpoczynek'),t('Fitness','Gym','Silownia'),t('Repos','Rest','Odpoczynek'),t('Marche','Walk','Spacer'),t('Repos','Rest','Odpoczynek')],sedentary:[t('Repos','Rest','Odpoczynek'),t('Repos','Rest','Odpoczynek'),t('Marche','Walk','Spacer'),t('Repos','Rest','Odpoczynek'),t('Repos','Rest','Odpoczynek'),t('Marche','Walk','Spacer'),t('Repos','Rest','Odpoczynek')]};
+  var arow=actW[d.act]||actW.moderate;
+  var days7=FR?['Lun','Mar','Mer','Jeu','Ven','Sam','Dim']:PL?['Pon','Wt','Sr','Czw','Pt','Sob','Nd']:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  var bkw=FR?['Oeufs+skyr+pain','Oeufs+pain','Skyr+pain','Oeufs+pain','Shake+pain','Oeufs+pain','Oeufs+skyr']:PL?['Jajka+skyr+chleb','Jajka+chleb','Skyr+chleb','Jajka+chleb','Shake+chleb','Jajka+chleb','Jajka+skyr']:['Eggs+skyr+bread','Eggs+bread','Skyr+bread','Eggs+bread','Shake+bread','Eggs+bread','Eggs+skyr'];
+  var lnw=FR?[isVeg?'Tofu+riz+leg':'Poulet+riz+leg',isVeg?'Lentilles+leg':(isNoFish?'Poulet+lentilles':'Poisson+leg'),isVeg?'Pois chiches+pates':(isNoFish?'Boeuf+pates+leg':'Boeuf+pates+leg'),'Restes/maison',isVeg?'Tofu+leg':'Poulet+pates','Flexible','Fait maison']:PL?[isVeg?'Tofu+ryz+warzywa':'Kurczak+ryz+warzywa',isVeg?'Soczewica+warzywa':(isNoFish?'Kurczak+soczewica+warzywa':'Ryba+soczewica+warzywa'),isVeg?'Ciecierzyca+makaron':'Wolowina+makaron+warzywa','Resztki',isVeg?'Tofu+warzywa':'Kurczak+makaron','Elastyczny','Gotowane w domu']:['Chicken+rice+veg',isNoFish?'Chicken+lentils+veg':'Fish+lentils+veg',isVeg?'Chickpeas+pasta':'Beef+pasta+veg','Leftovers','Chicken+pasta','Flexible','Home cooked'];
+  var snw=FR?['Shake+banane','Yaourt+amandes','Shake+fruit','Yaourt','Shake','Fruit+noix','Yaourt']:PL?['Shake+banan','Jogurt+migdaly','Shake+owoc','Jogurt','Shake','Owoc+orzechy','Jogurt']:['Shake+banana','Yogurt+almonds','Shake+fruit','Yogurt','Shake','Fruit+nuts','Yogurt'];
+  var dnw=FR?['Poulet+leg+riz','Oeufs+leg',isNoFish?'Poulet+leg':'Saumon+leg','Lentilles+oeufs','Boeuf+leg','Flexible',isNoFish?'Poulet/boeuf':'Poisson/poulet']:PL?['Kurczak+warzywa+ryz','Jajka+pieczone warzywa',isNoFish?'Kurczak+warzywa':'Losos+warzywa','Soczewica+jajka','Wolowina+warzywa','Elastyczny',isNoFish?'Kurczak/wolowina+warzywa':'Ryba/kurczak+warzywa']:['Chicken+veg+rice','Eggs+roasted veg',isNoFish?'Chicken+veg':'Salmon+veg','Lentils+eggs','Beef+veg','Flexible',isNoFish?'Chicken/beef+veg':'Fish/chicken+veg'];
+  var wkR=days7.map(function(dd,i){return [dd,arow[i],bkw[i],lnw[i],snw[i],dnw[i]];});
+
+  // Build protein sources table
+  var psrc=d.diet==='vegetarian'?
+    (FR?[['Tofu ferme','150g','~22g','Diner'],['Skyr/yaourt','200g','~20-24g','Matin'],['Oeufs','3','~18-21g','Tout'],['Blancs oeufs','3','~10-11g','Tout'],['Lentilles','220g','~18g','Dej/din'],['Pois chiches','200g','~15g','Dej/din'],['Shake','1 dose','~25-30g','Post-ent']]:PL?[['Tofu twardy','150g','~22g','Kolacja'],['Skyr/jogurt','200g','~20-24g','Sniadanie'],['Jajka','3','~18-21g','Kazdy posilek'],['Bialka jaj','3','~10-11g','Kazdy posilek'],['Soczewica','220g','~18g','Obiad/kol.'],['Ciecierzyca','200g','~15g','Obiad/kol.'],['Shake','1 porcja','~25-30g','Po treningu']]
+    :[['Firm tofu','150g','~22g','Dinner'],['Skyr/yogurt','200g','~20-24g','Breakfast'],['Eggs','3','~18-21g','Any'],['Egg whites','3','~10-11g','Any'],['Lentils','220g','~18g','Lunch/din'],['Chickpeas','200g','~15g','Lunch/din'],['Shake','1 scoop','~25-30g','Post-wkt']])
+    :isNoFish?(FR?[['Blanc poulet','150g','~45g','Dej/din'],['Dinde','150g','~40g','Dej/din'],['Oeufs','3','~18-21g','Matin/din'],['Blancs oeufs','3','~10-11g','Tout'],['Skyr/yaourt','150-200g','~15-24g','Matin'],['Boeuf maigre','150g','~37g','Dejeuner'],['Shake','1 dose','~25-30g','Post-ent'],['Lentilles','200g','~18g','Dejeuner'],['Fromage','30-40g','~8-10g','Diner (lim)']]:PL?[['Filet z kurczaka','150g','~45g','Obiad/kol.'],['Indyk','150g','~40g','Obiad/kol.'],['Jajka','3','~18-21g','Sniad./kol.'],['Bialka jaj','3','~10-11g','Kazdy posilek'],['Skyr/jogurt','150-200g','~15-24g','Sniadanie'],['Chuda wolowina','150g','~37g','Obiad'],['Shake','1 porcja','~25-30g','Po treningu'],['Soczewica','200g','~18g','Obiad'],['Ser','30-40g','~8-10g','Kolacja (ogr)']]:  [['Chicken breast','150g','~45g','Lunch/din'],['Turkey','150g','~40g','Lunch/din'],['Eggs','3','~18-21g','Bfast/din'],['Egg whites','3','~10-11g','Any'],['Skyr/yogurt','150-200g','~15-24g','Breakfast'],['Beef (lean)','150g','~37g','Lunch'],['Shake','1 scoop','~25-30g','Post-workout'],['Lentils','200g','~18g','Lunch'],['Cheese','30-40g','~8-10g','Dinner (lim)']])
+    :(FR?[['Blanc poulet','150g','~45g','Dej/din'],['Thon/poisson','150g','~35-40g','Dej/din'],['Oeufs','3','~18-21g','Matin/din'],['Blancs oeufs','3','~10-11g','Tout'],['Skyr/yaourt','150-200g','~15-24g','Matin'],['Boeuf maigre','150g','~37g','Dejeuner'],['Shake','1 dose','~25-30g','Post-ent'],['Lentilles','200g','~18g','Dejeuner'],['Fromage','30-40g','~8-10g','Diner (lim)']]:PL?[['Filet z kurczaka','150g','~45g','Obiad/kol.'],['Tunczyk/ryba','150g','~35-40g','Obiad/kol.'],['Jajka','3','~18-21g','Sniad./kol.'],['Bialka jaj','3','~10-11g','Kazdy posilek'],['Skyr/jogurt','150-200g','~15-24g','Sniadanie'],['Chuda wolowina','150g','~37g','Obiad'],['Shake','1 porcja','~25-30g','Po treningu'],['Soczewica','200g','~18g','Obiad'],['Ser','30-40g','~8-10g','Kolacja (ogr)']]
+    :[['Chicken breast','150g','~45g','Lunch/din'],['Tuna/fish','150g','~35-40g','Lunch/din'],['Eggs','3','~18-21g','Bfast/din'],['Egg whites','3','~10-11g','Any'],['Skyr/yogurt','150-200g','~15-24g','Breakfast'],['Beef (lean)','150g','~37g','Lunch'],['Shake','1 scoop','~25-30g','Post-wkt'],['Lentils','200g','~18g','Lunch'],['Cheese','30-40g','~8-10g','Dinner (lim)']]);
+
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+t('Plan Nutritionnel','Nutrition Plan','Plan Zywieniowy')+' - '+d.name+'</title>';
+  html+='<style>';
+  html+='*{box-sizing:border-box;margin:0;padding:0}';
+  html+='body{font-family:Helvetica,Arial,sans-serif;font-size:8.5px;color:#222;padding:9mm 11mm;line-height:1.35}';
+  /* Cover */
+  html+='.cover{border-bottom:3px solid #2E7D32;padding-bottom:7px;margin-bottom:7px;page-break-inside:avoid}';
+  html+='.cover h1{font-size:15px;font-weight:800;color:#1b5e20;letter-spacing:.03em;margin:0 0 2px}';
+  html+='.cover .sub{font-size:8px;color:#555;margin-bottom:4px}';
+  html+='.cover .meta{font-size:7.5px;color:#999;margin-top:3px}';
+  html+='.goal-tag{display:inline-block;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:3px;padding:1px 7px;font-size:8px;font-weight:700;color:#1b5e20;margin-bottom:4px}';
+  /* Profile row */
+  html+='.profile{display:flex;gap:0;border:1px solid #e0e0e0;border-radius:4px;overflow:hidden;margin:4px 0}';
+  html+='.prof-pill{flex:1;padding:3px 5px;border-right:1px solid #e0e0e0;text-align:center}';
+  html+='.prof-pill:last-child{border-right:none}';
+  html+='.prof-lbl{font-size:6px;color:#2E7D32;font-weight:700;text-transform:uppercase;letter-spacing:.05em;display:block}';
+  html+='.prof-val{font-size:8px;font-weight:700;color:#1a1a1a;display:block}';
+  /* Section headings */
+  html+='h2{font-size:9.5px;font-weight:800;color:#1b5e20;text-transform:uppercase;letter-spacing:.06em;border-bottom:1.5px solid #2E7D32;padding-bottom:2px;margin:9px 0 4px;page-break-after:avoid;orphans:3;widows:3}';
+  html+='h2.blue-head{color:#0d47a1;border-bottom-color:#1565c0}';
+  html+='h3{font-size:8px;font-weight:700;color:#2E7D32;margin:5px 0 2px;page-break-after:avoid}';
+  html+='h3.blue-h3{color:#1565c0}';
+  html+='h2+*,h3+*{page-break-before:avoid}';
+  /* Body */
+  html+='p{font-size:8.5px;margin:1px 0}';
+  html+='ul,ol{margin:2px 0 2px 12px}';
+  html+='li{font-size:8.5px;margin:1px 0;page-break-inside:avoid}';
+  /* Tables */
+  html+='table{width:100%;border-collapse:collapse;font-size:8px;margin:3px 0;page-break-inside:avoid}';
+  html+='thead{display:table-header-group}';
+  html+='tr{page-break-inside:avoid}';
+  html+='th{background:#2E7D32;color:white;padding:3px 4px;text-align:left;font-size:7.5px;font-weight:700;letter-spacing:.02em}';
+  html+='th.blue-th{background:#1565c0}';
+  html+='td{padding:2px 4px;border-bottom:1px solid #efefef;vertical-align:top}';
+  html+='tr:last-child td{border-bottom:none}';
+  html+='tr:nth-child(even){background:#fafafa}';
+  /* Callout boxes */
+  html+='.box{border-radius:3px;padding:4px 7px;margin:3px 0;page-break-inside:avoid}';
+  html+='.box p{margin:1px 0}';
+  html+='.box-green{background:#f0faf0;border-left:3px solid #2E7D32}';
+  html+='.box-blue{background:#e8f1fb;border-left:3px solid #1565c0}';
+  html+='.box-grey{background:#f6f6f6;border-left:3px solid #bdbdbd}';
+  html+='.box-amber{background:#fff8e1;border-left:3px solid #f57c00}';
+  /* How-to block */
+  html+='.howto{background:#f5fbf5;border:1px solid #c8e6c9;border-radius:3px;padding:4px 7px;margin:4px 0;page-break-inside:avoid}';
+  html+='.howto .howto-title{font-size:7.5px;font-weight:800;color:#1b5e20;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}';
+  /* Section page breaks — only training plan starts new page */
+  html+='.section-break{page-break-before:always;height:0;margin:0;padding:0}';
+  /* Training header banner */
+  html+='.train-hdr{border-bottom:3px solid #1565c0;padding-bottom:5px;margin-bottom:6px;page-break-inside:avoid}';
+  html+='.train-hdr h1{font-size:13px;font-weight:800;color:#0d47a1;margin:0 0 1px}';
+  html+='.train-hdr .train-sub{font-size:8px;color:#666}';
+  /* Footer */
+  html+='.footer{text-align:center;margin-top:6px;padding-top:5px;border-top:1px solid #ddd}';
+  html+='@media print{body{padding:7mm 9mm}h2{margin-top:7px}table{page-break-inside:avoid}}';
+  html+='</style></head><body>';
+
+  // Cover
+  var now=new Date(); var months=FR?['janv.','fevr.','mars','avr.','mai','juin','juil.','aout','sept.','oct.','nov.','dec.']:PL?['sty','lut','mar','kwi','maj','cze','lip','sie','wrz','paz','lis','gru']:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var issued=now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
+  var reviewDate=new Date(now); reviewDate.setMonth(reviewDate.getMonth()+4);
+  var review=reviewDate.getDate()+' '+months[reviewDate.getMonth()]+' '+reviewDate.getFullYear();
+  html+='<div class="cover">';
+  html+='<h1>'+t(d.training?'PLAN NUTRITION & ENTRAINEMENT':'PLAN NUTRITIONNEL PERSONNALISE',d.training?'NUTRITION & TRAINING PLAN':'PERSONALISED NUTRITION PLAN',d.training?'PLAN ZYWIENIOWY I TRENINGOWY':'SPERSONALIZOWANY PLAN ZYWIENIOWY')+'</h1>';
+  html+='<div class="sub">'+t('Nutrition Performance Personnalisee · Eliza Skander','Performance Nutrition · Eliza Skander','Zywienie dla Wynikow · Eliza Skander')+'</div>';
+  html+='<span class="goal-tag">'+t('OBJECTIF','GOAL','CEL')+': '+goalL+'</span>';
+  html+='<div class="profile">';
+  [[t('Nom','Name','Imie'),d.name],[t('Age','Age','Wiek'),d.age+(FR?' ans':PL?' lat':' yrs')],[t('Poids','Weight','Waga'),d.weight+' kg'],[t('Taille','Height','Wzrost'),d.height+' cm'],[t('Activite','Activity','Aktywnosc'),actL]].forEach(function(c){
+    html+='<div class="prof-pill"><span class="prof-lbl">'+c[0]+'</span><span class="prof-val">'+c[1]+'</span></div>';
+  });
+  html+='</div>';
+  html+='<div class="meta">'+t('Issued ','Issued ','Data: ')+issued+' &nbsp;&middot;&nbsp; '+t('Review ','Review ','Przeglad: ')+review+'</div>';
+  html+='</div>';
+  if(d.notes) html+='<div class="box box-grey"><p><strong>'+t('Notes coach','Coach notes','Notatki trenera')+':</strong> '+d.notes+'</p></div>';
+  if(d.nutnotes) html+='<div class="box box-amber"><p><strong>'+t('Notes nutritionnelles','Nutrition notes','Notatki zywieniowe')+':</strong> '+d.nutnotes+'</p></div>';
+
+  html+='<div class="howto">';
+  html+='<div class="howto-title">'+t('COMMENT UTILISER CE PLAN','HOW TO USE THIS PLAN','JAK UZYWAC TEGO PLANU')+'</div>';
+  html+=isPow?'<ol style="margin:1px 0 1px 12px">'+[t('Lis la strategie (section 1) et les objectifs macros (section 2) - comprendre le pourquoi aide a tenir','Read the strategy (section 1) and macro targets (section 2) - understanding the why helps you stick to it','Przeczytaj strategie (sekcja 1) i cele makro (sekcja 2) - rozumienie dlaczego pomaga wytrwac'),t('Commence par le petit-dejeuner (section 3) - c est le changement le plus impactant','Start with breakfast (section 3) - it is the highest impact change','Zacznij od sniadania (sekcja 3) - to najwazniejsza zmiana'),t('Planifie les repas pre et post-match en priorite (section 6)','Plan pre and post-match meals as a priority (section 6)','Zaplanuj posilki przed i po treningu jako priorytet (sekcja 6)'),t('Suis les seances d entrainement avec les charges notees','Follow training sessions and log your weights','Sledz treningi i zapisuj ciezary'),t('Pese-toi et prends tes mesures toutes les 3-4 semaines','Weigh yourself and take measurements every 3-4 weeks','Waz sie i mierz co 3-4 tygodnie')].map(function(s){return '<li style="margin:1px 0">'+s+'</li>';}).join('')+'</ol>'
+  :'<ol style="margin:1px 0 1px 12px">'+[t('Lis la strategie (section 1) et les objectifs macros (section 2) en premier','Read the strategy (section 1) and macro targets (section 2) first','Przeczytaj najpierw strategie (sekcja 1) i cele makro (sekcja 2)'),t('Commence par un seul changement : ameliore ton petit-dejeuner (section 3)','Start with one change: improve your breakfast (section 3)','Zacznij od jednej zmiany: popraw sniadanie (sekcja 3)'),t('Suis le plan alimentaire hebdomadaire (section 4) du mieux que tu peux','Follow the weekly meal plan (section 4) as closely as you can','Stosuj tygodniowy plan posilkow (sekcja 4) najlepiej jak mozesz'),t('Mesure tes progres toutes les 3-4 semaines (section 7)','Track your progress every 3-4 weeks (section 7)','Mierz postepy co 3-4 tygodnie (sekcja 7)'),t('Contacte ton coach si tu as des questions ou si tu veux ajuster','Contact your coach with questions or when you want to adjust','Skontaktuj sie z trenerem w razie pytan lub gdy chcesz dostosowac plan')].map(function(s){return '<li style="margin:1px 0">'+s+'</li>';}).join('')+'</ol>';
+  html+='</div>';
+  html+=sec(t('1. Stratégie nutritionnelle','1. Nutrition Strategy'),'green');
+  html+='<p>'+s1+'</p>';
+  html+=box([isMus?t('Surplus +'+surplus+' kcal/jour pour la croissance musculaire','Calorie surplus +'+surplus+' kcal/day for muscle growth','Nadwyzka +'+surplus+' kcal/dzien dla wzrostu masy miesniowej'):isFat?t('Deficit '+deficit+' kcal/jour - preserve le muscle','Deficit '+deficit+' kcal/day - preserves muscle','Deficyt '+deficit+' kcal/dzien - zachowuje mesnie'):isPow?t('Leger surplus +'+surplus+' kcal/jour - soutient la performance et la recuperation','Small surplus +'+surplus+' kcal/day - supports performance and recovery','Mala nadwyzka +'+surplus+' kcal/dzien - wspiera wydajnosc i regeneracje'):t('Bilan calorique autour de '+m.tdee+' kcal','Calorie balance around '+m.tdee+' kcal','Bilans kaloryczny wokol '+m.tdee+' kcal'),t(m.pl+'-'+m.ph+'g proteines/jour repartis sur tous les repas - priorite absolue',m.pl+'-'+m.ph+'g protein/day spread across all meals - absolute priority',m.pl+'-'+m.ph+'g bialka/dzien rozlozonych na wszystkie posilki - absolutny priorytet'),isPow?t('Glucides eleves ('+m.cbl+'-'+m.cbh+'g) - carburant principal pour la puissance explosive','High carbs ('+m.cbl+'-'+m.cbh+'g) - primary fuel for explosive power','Wysokie weglowodany ('+m.cbl+'-'+m.cbh+'g) - glowne paliwo dla eksplozywnej mocy'):isAct?t('Glucides hauts ('+m.cbl+'-'+m.cbh+'g) - ton activite les exige','Carbs kept high ('+m.cbl+'-'+m.cbh+'g) - your activity demands it','Wysokie weglowodany ('+m.cbl+'-'+m.cbh+'g) - Twoja aktywnosc tego wymaga'):isFat?t('Glucides reduits ('+m.cbl+'-'+m.cbh+'g) mais non supprimes','Carbs reduced ('+m.cbl+'-'+m.cbh+'g) but not eliminated','Weglowodany zmniejszone ('+m.cbl+'-'+m.cbh+'g) ale nie wyeliminowane'):t('Glucides adaptes : '+m.cbl+'-'+m.cbh+'g/jour','Carbs calibrated: '+m.cbl+'-'+m.cbh+'g/day','Weglowodany skalibrowane: '+m.cbl+'-'+m.cbh+'g/dzien')],'#e8f5e9');
+
+  html+=sec(t('2. Objectifs nutritionnels journaliers','2. Daily Nutrition Targets','2. Dzienne cele zywieniowe'),'green');
+  html+=tbl(t(['Nutriment','Objectif/jour','Moy./repas','Role'],['Nutrient','Daily target','Per meal','Role'],['Skladnik','Cel dzienny','Na posilek','Rola']),[
+    [t('Calories','Calories','Kalorie'),m.cl+'-'+m.ch+' kcal','~'+Math.round(m.cl/3)+'-'+Math.round(m.ch/3)+' kcal',t('Energie totale','Total energy','Energia calkowita')],
+    [t('Proteines','Protein','Bialko'),m.pl+'-'+m.ph+' g','~'+Math.round(m.pl/3)+'-'+Math.round(m.ph/3)+' g',t('Construction musculaire','Muscle building','Budowa miesni')],
+    [t('Glucides','Carbs','Weglowodany'),m.cbl+'-'+m.cbh+' g','~'+Math.round(m.cbl/3)+'-'+Math.round(m.cbh/3)+' g',t('Energie & sport','Energy & sport','Energia i sport')],
+    [t('Lipides','Fats','Tluszcze'),m.fl+'-'+m.fh+' g','~'+Math.round(m.fl/3)+'-'+Math.round(m.fh/3)+' g',t('Hormones & sante','Hormones & health','Hormony i zdrowie')]
+  ],[.22,.27,.26,.25]);
+  html+=box([t('Priorite : '+m.pl+'-'+m.ph+'g de proteines/jour repartis sur tous les repas.','Priority: '+m.pl+'-'+m.ph+'g protein/day spread across all meals.','Priorytet: '+m.pl+'-'+m.ph+'g bialka/dzien rozlozonych na wszystkie posilki.')],'#e8f5e9');
+
+  html+=sec(t('3. Structure des repas','3. Daily Meal Structure'),'green');
+  html+=tbl(t(['Repas','Aliments','Proteines','Calories'],['Meal','Foods','Protein','Calories'],['Posilek','Produkty','Bialko','Kalorie']),[
+    [t('Petit-dejeuner','Breakfast','Sniadanie'),t('Pain+cafe + oeufs/skyr/shake (cible '+bP+'g)','Bread+coffee + eggs/skyr/shake (target '+bP+'g)','Chleb+kawa + jajka/skyr/shake (cel '+bP+'g)'),'~'+bP+'g','~'+Math.round(m.cl*.18)+'-'+Math.round(m.ch*.20)+' kcal'],
+    [t('Dejeuner','Lunch','Obiad'),isVeg?t('Legumineuses+leg+'+carbG+'g feculent','Legumes+veg+'+carbG+'g carbs','Leguminy+warzywa+'+carbG+'g weglowodanow'):isPesc?t('Poisson+leg+'+carbG+'g','Fish+veg+'+carbG+'g','Ryba+warzywa+'+carbG+'g'):isNoFish?t('Viande+leg+'+carbG+'g','Meat+veg+'+carbG+'g','Mieso+warzywa+'+carbG+'g'):t('Viande/poisson+leg+'+carbG+'g','Meat/fish+veg+'+carbG+'g','Mieso/ryba+warzywa+'+carbG+'g'),'~'+lP+'-'+(lP+10)+'g','~'+Math.round(m.cl*.30)+'-'+Math.round(m.ch*.32)+' kcal'],
+    [isAct?t('Post-entrain.','Post-workout','Po treningu'):t('Collation','Snack','Przekaska'),isAct?t('Shake proteine + banane','Protein shake + banana','Shake proteinowy + banan'):t('Yaourt grec + fruit/noix','Greek yogurt + fruit/nuts','Jogurt grecki + owoc/orzechy'),'~'+sP+'g','~'+Math.round(m.cl*.10)+'-'+Math.round(m.ch*.12)+' kcal'],
+    [t('Diner','Dinner','Kolacja'),t('Options ci-dessous (~'+dP+'g)','See options below (~'+dP+'g)','Opcje ponizej (~'+dP+'g)'),'~'+dP+'g','~'+Math.round(m.cl*.28)+'-'+Math.round(m.ch*.30)+' kcal']
+  ],[.18,.44,.18,.20]);
+
+  html+=sub(t('Petit-dejeuner - Changement prioritaire','Breakfast - The Priority Fix','Sniadanie - Najwazniejsza zmiana'));
+  html+=box([isMus?t('Vise '+bP+'g proteines le matin.','Aim for '+bP+'g protein at breakfast.','Cel: '+bP+'g bialka na sniadanie.'):isFat?t('Un petit-dej proteine reduit les fringales.','A protein-rich breakfast reduces hunger.','Sniadanie bogate w bialko zmniejsza glod.'):t('Cible : '+bP+'g proteines le matin.','Target: '+bP+'g protein at breakfast.')],'#e8f5e9');
+  html+=bul(FR?['3 oeufs - env. 18-21g proteines','150-200g skyr ou yaourt grec - env. 15-24g','Shake proteine 25-30g (option rapide)',isVeg?null:'50g jambon blanc + 2 oeufs - env. 22g'].filter(Boolean):PL?['3 jajka (dowolnie) - ok. 18-21g bialka','150-200g skyr lub jogurt grecki - ok. 15-24g','Shake proteinowy 25-30g (szybka opcja)',isVeg?null:'50g chudej szynki + 2 jajka - ok. 22g'].filter(Boolean):['3 eggs (any style) - approx. 18-21g protein','150-200g skyr or Greek yogurt - approx. 15-24g','Protein shake 25-30g (quick option)',isVeg?null:'50g lean ham + 2 eggs - approx. 22g'].filter(Boolean));
+  html+='<p><strong>'+t('Meilleure option :','Best option:','Najlepsza opcja:')+'</strong> '+( isOld?t('2 oeufs + 150g skyr - env. 30-33g. Important a '+d.age+' ans.','2 eggs + 150g skyr - approx. 30-33g. Key at age '+d.age+'.','2 jajka + 150g skyr - ok. 30-33g. Kluczowe w wieku '+d.age+' lat.'):t('2 oeufs + 100g skyr - env. 28-32g.','2 eggs + 100g skyr - approx. 28-32g.','2 jajka + 100g skyr - ok. 28-32g.')+'</p>');
+
+  html+=sub(t('Dejeuner','Lunch','Obiad'));
+  html+=bul(FR?['Vise '+lP+'-'+(lP+10)+'g proteines',isPow?carbG+'g feculents minimum - carburant essentiel pour la performance':isAct?carbG+'g feculents - ne pas reduire':isSed?carbG+'g feculents suffit':carbG+'g feculents adapte',isFat?'Maximise les legumes':isPow?'Repas pre-seance : augmente les glucides de 30-50g (riz, pates, pain)':'Les legumes sont excellents',isVeg?'Legumineuses + cereales pour acides amines complets':'Varie les sources proteines']:['Aim for '+lP+'-'+(lP+10)+'g protein',isPow?carbG+'g carbs minimum - essential fuel for performance':isAct?carbG+'g carbs - do not reduce':isSed?carbG+'g carbs sufficient':carbG+'g carbs appropriate',isFat?'Maximise vegetables - volume without calories':isPow?'Pre-session meal: add 30-50g extra carbs (rice, pasta, bread)':'Vegetables are excellent - keep or increase',isVeg?'Legumes + whole grains for complete amino acids':'Vary protein sources for nutrient diversity']);
+
+  html+=sub(t('Diner - Options variees','Dinner - Varied Options','Kolacja - Roznorodne opcje'));
+  html+='<p>'+t('Cible ~'+dP+'g proteines. Alterne :','Target ~'+dP+'g protein. Rotate:')+'</p>';
+  html+=bul(dOpts.map(function(o){return '<strong>'+o[0]+'</strong> '+o[1];}));
+  html+='<p>'+t('Fromage : max 30-40g par repas.','Cheese: max 30-40g per dinner.','Ser: max 30-40g na posilek.')+'</p>';
+
+  html+=sub(isAct?t('Collation / Post-entrainement','Snack / Post-Workout','Przekaska / Po treningu'):t('Collation','Snack','Przekaska'));
+  html+=bul(FR?(isPow?['Shake proteine + banane - '+sP+'g OBLIGATOIRE dans les 30 min post-match/entrainement','Pre-entrainement (1h avant) : banane + pain de mie + cafe','Entre matches (si moins de 3h) : riz blanc + poulet + eau']:isAct?['Shake proteine + banane - '+sP+'g, ideal 60-90 min post-entrain.','Ou : 200g skyr + fruit','Jours repos : yaourt + amandes si faim']:isSed?['Yaourt grec 0% 150g - '+sP+'g proteines','Poignee amandes 25g','Eviter snacks sucres']:['Shake + fruit (jours entrain.)','Yaourt grec + noix (repos)','Pas obligatoire si pas faim'])
+  :(isPow?['Protein shake + banana - '+sP+'g ESSENTIAL within 30 min post-match/training','Pre-training (1h before): banana + white bread + coffee','Between matches (<3h gap): white rice + chicken + water']:isAct?['Protein shake + banana - '+sP+'g, ideal 60-90 min post-workout','Or: 200g skyr + fruit','Rest days: yogurt + almonds if hungry']:isSed?['0% Greek yogurt 150g - '+sP+'g protein','Handful almonds 25g','Avoid sugary snacks']:['Shake + fruit (training days)','Greek yogurt + nuts (rest days)','Not mandatory if not hungry']));
+
+  html+=sec(t('4. Plan alimentaire hebdomadaire','4. Weekly Meal Plan','4. Tygodniowy plan posilkow'),'green');
+  html+=tbl(t(['Jour','Activite','Petit-dej.','Dejeuner','Collation','Diner'],['Day','Activity','Breakfast','Lunch','Snack','Dinner'],['Dzien','Aktywnosc','Sniadanie','Obiad','Przekaska','Kolacja']),wkR,[.07,.13,.18,.22,.16,.24]);
+
+  html+=sec(t('5. Sources de proteines','5. Protein Sources','5. Zrodla bialka'),'green');
+  html+=tbl(t(['Aliment','Portion','Proteines','Ideal pour'],['Food','Portion','Protein','Best used'],['Produkt','Porcja','Bialko','Najlepiej na']),psrc,[.30,.18,.18,.34]);
+
+  html+=sec(t('6. Supplementation','6. Supplementation','6. Suplementacja'),'green');
+  html+='<p>'+t('Seuls les supplements ayant des preuves solides sont recommandes. Tout le reste est optionnel.','Only supplements with strong evidence are recommended. Everything else is optional.','Zalecane sa tylko suplementy o mocnych dowodach. Reszta jest opcjonalna.')+'</p>';
+  var suppRows=[
+    [t('Creatine monohydrate','Creatine monohydrate','Monohydrat kreatyny'),'3-5g/dzien',t('Puissance, muscle, recuperation','Power, muscle, recovery','Moc, masa, regeneracja'),t('Recommande - preuves solides','Recommended - strong evidence','Zalecany - mocne dowody'),''],
+    [isPow?t('Cafeine','Caffeine','Kofeina'):'Vitamin D','200-400mg / 2000-4000 IU',isPow?t('Performance, concentration avant match','Pre-match performance & focus','Wydajnosc, koncentracja przed meczem'):'Immunity, hormones, bone health',isPow?t('1h avant match/entrain.','1h before match/training','1h przed meczem/treningiem'):'Get levels tested first'],
+    [t('Omega-3 (EPA+DHA)','Omega-3 (EPA+DHA)','Omega-3 (EPA+DHA)'),'2-3g/dzien',t('Inflammation, sante articulaire, recuperation','Inflammation, joint health, recovery','Zapalenie, zdrowie stawow, regeneracja'),isPow?t('Particulierement utile pour sport contact','Especially useful in contact sport','Szczegolnie przydatne w sporcie kontaktowym'):t('Utile pour les articulations et la recuperation','Useful for joints and recovery','Przydatne dla stawow i regeneracji'),''],
+    [t('Proteine en poudre (whey/vegan)','Protein powder (whey/vegan)','Odzywka bialkowa (whey/vegan)'),'1 porcja po treningu',t('Pratique si objectif proteine difficile a atteindre','Convenient if protein target is hard to reach from food','Przydatna jesli trudno osiagnac cel bialkowy z jedzenia'),t('Optionnel - alimentation en premier','Optional - food first','Opcjonalna - najpierw jedzenie'),''],
+    ['Vitamin D','2000-4000 IU',t('Immunite, hormones, sante osseuse','Immunity, hormones, bone health','Odpornosc, hormony, zdrowie kosci'),d.age>=50?t('Recommande apres 50 ans','Recommended over 50','Zalecana po 50 roku zycia'):t('Utile si peu de soleil','Useful with low sun exposure','Przydatna przy malym naslonecznieniu'),''],
+  ];
+  if(!isPow) suppRows.splice(1,1); // remove caffeine row if not sport goal
+  html+=tbl(t(['Supplement','Dose','Benefice','Note'],['Supplement','Dose','Benefit','Note'],['Suplement','Dawka','Korzysci','Uwaga']),suppRows,[.22,.15,.30,.33]);
+  html+='<p style="font-size:7.5px;color:#888;font-style:italic">'+t('Les supplements ne remplacent pas une alimentation equilibree. Consulte un medecin avant de commencer.','Supplements do not replace a balanced diet. Consult a doctor before starting.','Suplementy nie zastepuja zbilansowanej diety. Skonsultuj sie z lekarzem przed rozpoczeciem.')+'</p>';
+
+  html+=sec(t('7. Mode de vie & flexibilite','7. Lifestyle & Flexibility','7. Styl zycia i elastycznosc'),'green');
+  html+=sub(t('Preparation & pratique','Meal prep & practicality','Praktyczne przygotowanie'));
+  html+=bul(FR?['Cuisson en lot le dimanche : poulet, oeufs durs, riz - gagne du temps toute la semaine',
+    'Garde des oeufs durs au frigo - proteines rapides sans preparation',
+    'Skyr ou yaourt grec en gros pot - petit-dejeuner rapide a haute proteine',
+    isAct||isPow?'Shake proteine en sac de sport - ne jamais rater le post-entrainement':'Shake proteine au frigo - option rapide si manque de temps le matin',
+    'Surgeles de legumes et poisson : aussi nutritifs, moins chers, toujours disponibles']
+  :PL?['Gotowanie zbiorcze w niedziele: kurczak, jajka na twardo, ryz - oszczedza czas przez caly tydzien',
+    'Jajka na twardo w lodowce - szybkie bialko bez gotowania',
+    'Skyr lub jogurt grecki w duzym opakowaniu - szybkie sniadanie bogate w bialko',
+    isAct||isPow?'Shake proteinowy w torbie sportowej - nigdy nie przegap posilku po treningu':'Shake proteinowy w lodowce - szybka opcja jesli brakuje czasu rano',
+    'Mrozone warzywa i ryby: rownie odzywcze, tansze, zawsze dostepne']
+  :['Sunday batch cook: chicken, hard-boiled eggs, rice - saves time all week',
+    'Keep hard-boiled eggs in the fridge - fast protein with no prep',
+    'Large tub of skyr or Greek yogurt - quick high-protein breakfast',
+    isAct||isPow?'Protein shake in gym bag - never miss post-workout nutrition':'Protein shake in the fridge - quick option when short on time in the morning',
+    'Frozen veg and fish: as nutritious, cheaper, always available']);
+  html+=sub(t('Repas plaisir','Treat meals','Posilki przyjemnosciowe'));
+  html+=box([isFat?t('Repas plaisir : max 1/sem. Reprends le plan au repas suivant.','Treat meals: max 1/week. Resume normally at the next meal.','Posilki przyjemnosciowe: max 1/tydz. Wracaj do planu przy nastepnym posilku.'):t('Repas plaisir : 1-2/sem compatibles. La regularite fait les resultats.','Treat meals: 1-2/week compatible. Weekly consistency drives results.','Posilki przyjemnosciowe: 1-2/tydz. Tygodniowa regularnosc daje efekty.')],'#f5f5f5');
+  html+=sub(t('Activite physique','Physical Activity','Aktywnosc fizyczna'));
+  html+=bul(isAct?t(['Glucides hauts ('+m.cbl+'-'+m.cbh+'g) - ne pas reduire','Proteines post-entrain. 60-90 min : shake + banane','Repos : glucides legerement reduits, proteines constantes'],['Carbs kept high ('+m.cbl+'-'+m.cbh+'g) - do not reduce','Post-workout protein 60-90 min: shake + banana','Rest days: slightly lower carbs, protein constant'],['Weglowodany wysokie ('+m.cbl+'-'+m.cbh+'g) - nie zmniejszaj','Bialko po treningu 60-90 min: shake + banan','Dni odpoczynku: nieco mniej weglowodanow, bialko stale']):isSed?t(['Proteines ('+m.pl+'-'+m.ph+'g) reste la priorite','Marches 20-30 min/jour augmentent le TDEE','Eviter longues periodes assises'],['Protein ('+m.pl+'-'+m.ph+'g) remains the priority','Daily walks 20-30 min increase TDEE','Avoid long sedentary periods'],['Bialko ('+m.pl+'-'+m.ph+'g) pozostaje priorytetem','Codzienne spacery 20-30 min zwiekszaja TDEE','Unikaj dlugich okresow siedzacych']):t(['Jours entrain. : +30-50g glucides autour seance','Proteines post-entrain. 60-90 min','Repos : proteines constantes, glucides reduits'],['Training days: +30-50g carbs around session','Post-workout protein within 60-90 min','Rest days: protein constant, carbs slightly reduced'],['Dni treningowe: +30-50g weglowodanow wokol treningu','Bialko po treningu w ciagu 60-90 min','Dni odpoczynku: bialko stale, nieco mniej weglowodanow']));
+  html+=sub(t('Alcool','Alcohol','Alkohol'));
+  html+='<p>'+t('Meme 2-3 verres par semaine reduisent la synthese proteique de 15-20% pendant 24-36h apres. Compatibles avec les objectifs, mais a limiter la veille et le lendemain d un entrainement.'+(isPow?' Critique pour la recuperation en sport de contact.':''),PL?('Nawet 2-3 drinki/tydz zmniejszaja synteze bialka o 15-20% przez 24-36h. Ogranicz przed i po treningu.'+(isPow?' Kluczowe dla regeneracji w sporcie kontaktowym.':'')):('Even 2-3 drinks per week reduce protein synthesis by 15-20% for 24-36h afterwards. Compatible with your goals, but limit the night before and after training.'+(isPow?' Critical for recovery in contact sport.':'')))+'</p>';
+  html+=sub(t('Hydratation','Hydration','Nawodnienie'));
+  html+=bul(isOld?t(['Vise 2.5-3 litres d eau/jour','Deshydratation souvent confondue avec faim a '+d.age+' ans','Max 3 cafes/jour'],['Aim for 2.5-3 litres water/day','Dehydration often confused with hunger at '+d.age,'Max 3 coffees/day'],['Cel: 2,5-3 litry wody dziennie','Odwodnienie czesto mylone z glodem w wieku '+d.age+' lat','Max 3 kawy dziennie']):t(['Vise 2-2.5 litres d eau/jour','L eau avant repas reduit l appetit','Cafe compte avec moderation'],['Aim for 2-2.5 litres water/day','Water before meals reduces appetite','Coffee counts in moderation'],['Cel: 2-2,5 litra wody dziennie','Woda przed posilkami zmniejsza apetyt','Kawa wlicza sie z umiarem']));
+
+  html+=sec(t('8. Progression attendue & suivi','8. Expected Progress & Review','8. Oczekiwane postepy i monitorowanie'),'green');
+  html+=box([t('Attentes realistes :','Realistic expectations:','Realistyczne oczekiwania:'),isMus?t('Sem. 1-3 : Meilleure energie, recuperation amelioree','Wks 1-3: Better energy, improved recovery','Tyg. 1-3: Lepsza energia, poprawiona regeneracja'):isFat?t('Sem. 1-3 : Reduction fringales, premiers resultats','Wks 1-3: Reduced hunger, first results','Tyg. 1-3: Mniej glodu, pierwsze efekty'):isPow?t('Sem. 1-3 : Meilleure energie explosive, recuperation acceleree entre efforts','Wks 1-3: Better explosive energy, faster recovery between efforts','Tyg. 1-3: Lepsza energia wybuchowa, szybsza regeneracja miedzy wysilkami'):t('Sem. 1-3 : Meilleure energie, appetit regule','Wks 1-3: Better energy, improved appetite regulation','Tyg. 1-3: Lepsza energia, uregulowany apetyt'),isMus?t('Sem. 4-8 : Gains de force visibles','Wks 4-8: Visible strength gains','Tyg. 4-8: Widoczne przyrosty sily'):isFat?t('Sem. 4-8 : Reduction visible de la graisse','Wks 4-8: Visible fat reduction','Tyg. 4-8: Widoczna redukcja tluszczu'):isPow?t('Sem. 4-8 : Amelioration vitesse, puissance et endurance aux entrainements','Wks 4-8: Improved speed, power and endurance in training','Tyg. 4-8: Lepsza predkosc, moc i wytrzymalosc na treningach'):t('Sem. 4-8 : Amelioration composition corporelle','Wks 4-8: Improved body composition','Tyg. 4-8: Poprawa skladу ciala'),isMus?t('Sem. 8-16 : Gains musculaires mesurables (0.5-1 kg/mois)','Wks 8-16: Measurable muscle gains (0.5-1 kg/month)','Tyg. 8-16: Mierzalne przyrosty miesni (0,5-1 kg/mies)'):isFat?t('Sem. 8-16 : Transformation visible','Wks 8-16: Visible transformation','Tyg. 8-16: Widoczna transformacja'):t('Sem. 8-16 : Masse musculaire mesurable','Wks 8-16: Measurable lean mass increase','Tyg. 8-16: Mierzalna masa miesniowa'),isOld?t('A '+d.age+' ans : resultats reels sur 12-16 semaines','At '+d.age+': real results over 12-16 weeks','W wieku '+d.age+' lat: realne efekty po 12-16 tygodniach'):t('En continu : progression avec la constance','Ongoing: progressive improvement with consistency','Na biazaco: postepy z regularnoscia')],'#e8f5e9');
+  html+='<p>'+t('Suivi : poids + mensurations toutes les 3-4 semaines.','Tracking: weight + measurements every 3-4 weeks.','Monitorowanie: waga + pomiary co 3-4 tygodnie.')+'</p>';
+
+  // Training section
+  if(d.training){
+    var tr=d.training;
+    var isMuscleT=d.goal==='muscle_gain',isFatT=d.goal==='fat_loss';
+    var isBeg=tr.exp==='beginner',isAdv=tr.exp==='advanced';
+    var expL={beginner:t('Debutant','Beginner','Poczatkujacy'),intermediate:t('Intermediaire','Intermediate','Sredniozaawansowany'),advanced:t('Avance','Advanced','Zaawansowany')}[tr.exp];
+    var scheme=isMuscleT&&isAdv?(PL?'4-5 x 5-6 powt.':'4-5 x 5-6 reps'):isFatT?(PL?'3 x 15-20 powt.':'3 x 15-20 reps'):(PL?'3-4 x 10-12 powt.':'3-4 x 10-12 reps');
+    var restStr=isMuscleT?(PL?'2-3 min':'2-3 min'):(PL?'90 sek':'90 sec'),restMain=isMuscleT?(PL?'90-120 sek':'90-120 sec'):isFatT?(PL?'30-45 sek':'30-45 sec'):(PL?'60-90 sek':'60-90 sec');
+    var eqList=[tr.gym&&t('Salle','Gym','Silownia'),tr.kb&&'Kettlebells',tr.db&&t('Halteres','Dumbbells','Hantle'),tr.bw&&t('Poids corps','Bodyweight','Masa ciala'),tr.band&&t('Elastiques','Bands','Gumy oporowe')].filter(Boolean).join(', ');
+
+    html+='<div class="section-break"></div>';
+    html+='<div class="train-hdr">';
+    html+='<h1>'+t("PLAN D'ENTRAINEMENT",'TRAINING PLAN')+'</h1>';
+    html+='<div class="train-sub">'+d.name+' &middot; '+expL+' &middot; '+tr.days+t(' j/sem',' days/wk',' dni/tydz')+' &middot; '+eqList+'</div>';
+    html+='</div>';
+    if(tr.notes) html+='<div class="box box-blue"><p><strong>'+t('Notes :','Notes:','Notatki:')+'</strong> '+tr.notes+'</p></div>';
+
+    html+='<h2 class="blue-head">'+t('Echauffement (avant chaque seance)','Warm-up (before every session)','Rozgrzewka (przed kazdym treningiem)')+'</h2>';
+    if(isOld) html+='<p>'+t('A '+d.age+' ans, l echauffement est obligatoire. Minimum 10 minutes.','At '+d.age+', the warm-up is non-negotiable. Minimum 10 minutes.','W wieku '+d.age+' lat rozgrzewka jest niezbedna. Minimum 10 minut.')+'</p>';
+    html+=bul(isOld?t(['5 min velo ou marche rapide','Mobilite hanches 90/90 - 2 min','Rotations epaules 2x10/cote','Cat-cow colonne - 1 min','Activation fessiers clamshell elastique 2x15'],['5 min cycling or brisk walk','Hip 90/90 mobility - 2 min','Shoulder circles 2x10/side','Cat-cow spine - 1 min','Glute activation: banded clamshell 2x15']):t(['5 min cardio leger','Echauffement articulaire : epaules, hanches, chevilles','1 serie legere 50% charge premier exercice'],['5 min light cardio','Joint warm-up: shoulders, hips, ankles','1 light set at 50% load of first exercise'],['5 min lekkiego cardio','Rozgrzewka stawow: barki, biodra, kostki','1 lekka seria przy 50% ciezaru pierwszego cwiczenia']));
+
+    var prog2=isBeg?t('Priorite : technique avant charges. Augmente 2.5-5 kg quand tu maitrises les reps.','Priority: technique before load. Add 2.5-5 kg when you master all reps.','Priorytet: technika przed ciezarem. Dodaj 2,5-5 kg gdy opanujesz powt.')
+    :isAdv?t('Periodisation : semaines lourdes (85-90% 1RM) puis volume (65-75% 1RM) toutes les 3-4 semaines.','Periodisation: alternate heavy (85-90% 1RM) and volume (65-75% 1RM) weeks every 3-4 weeks.','Periodyzacja: tygodnie ciezkie (85-90% 1RM) potem objetosc (65-75% 1RM) co 3-4 tygodnie.')
+    :t('Surcharge progressive : augmente charges ou reps chaque semaine. Atteins le haut puis ajoute 2.5-5 kg.','Progressive overload: increase load or reps each week. Hit the top of the rep range then add 2.5-5 kg.','Progresywne przeciazenie: zwiekszaj ciezar lub powt. co tydzien. Osiagnij gorny zakres, potem dodaj 2,5-5 kg.');
+
+    html+='<h2 class="blue-head">'+t('Programme hebdomadaire','Weekly Programme','Program tygodniowy')+'</h2>';
+    html+='<p><strong>'+t('Schema :','Scheme:','Schemat:')+'</strong> '+scheme+' | <strong>'+t('Repos principaux :','Main rest:','Glowny odpoczynek:')+'</strong> '+restStr+'</p>';
+    html+='<p>'+prog2+'</p>';
+    html+='<div class="box box-blue">';
+    html+='<p style="font-weight:700;color:#0d47a1;margin-bottom:2px">'+t('Echelle RPE (intensite percue)','RPE Scale (perceived exertion)','Skala RPE (odczuwany wysilek)')+'</p>';
+    html+=tbl(t(['RPE','Effort ressenti','Utilisation'],['RPE','How it feels','Use for'],['RPE','Odczucie','Zastosowanie']),
+      [[t('6-7','6-7','6-7'),t('Confortable, pourrais continuer longtemps','Comfortable, could go much longer','Komfortowo, mozna kontynuowac'),t('Echauffement, recuperation active','Warm-up, active recovery','Rozgrzewka, aktywna regeneracja')],
+       [t('8','8','8'),t('Difficile mais controle, 2-3 reps encore possible','Hard but controlled, 2-3 reps left','Trudno ale kontrolowanie, 2-3 powt. w rezerwie'),t('Hypertrophie (3-4 x 10-12)','Hypertrophy (3-4 x 10-12)','Hipertrofia (3-4 x 10-12)')],
+       [t('9','9','9'),t('Tres difficile, 1 rep possible','Very hard, 1 rep left','Bardzo trudno, 1 powt. w rezerwie'),t('Force (4-5 x 5-6)','Strength (4-5 x 5-6)','Sila (4-5 x 5-6)')],
+       [t('10','10','10'),t('Maximum absolu','Absolute maximum','Absolutne maksimum'),t('Test 1RM seulement','1RM testing only','Tylko test 1RM')]],
+      [.12,.50,.38],false,true);
+    html+='</div>';
+    html+='<div class="box box-amber">';
+    html+='<p style="font-weight:700;color:#e65100;margin-bottom:1px">'+t('Semaine de decharge (toutes les 4-6 semaines)','Deload week (every 4-6 weeks)','Tydzien odciazeniowy (co 4-6 tygodni)')+'</p>';
+    html+='<p>'+t('Reduis le volume de 40% (moins de series, pas la charge). Ex : 3 x 10 devient 2 x 10. Le corps se repare et revient plus fort. Ne saute pas les decharges - elles font partie du progres.','Reduce volume by 40% (fewer sets, not the load). e.g. 3 x 10 becomes 2 x 10. The body repairs and comes back stronger. Do not skip deloads - they are part of the progress.','Zmniejsz objetosc o 40% (mniej serii, nie ciezar). 3x10 staje sie 2x10. Cialo sie naprawia i wraca silniejsze. Nie pomijaj tygodni odciazeniowych.')+'</p>';
+    html+='</div>';
+
+    // Exercises
+    var gym=tr.gym,kb=tr.kb,db=tr.db,bwt=tr.bw;
+    var push=gym?t([['Developpe couche','Barre/halteres','Pectoraux, epaules, triceps'],['Developpe militaire','Barre debout','Epaules, triceps'],['Dips','Barres paralleles','Pecto bas, triceps'],['Elevations lat.','Halteres','Deltoides']],[['Bench press','Barbell/dumbbells','Chest, shoulders, triceps'],['Overhead press','Standing barbell','Shoulders, triceps'],['Dips','Parallel bars','Lower chest, triceps'],['Lateral raises','Dumbbells','Side delts']],[['Wyciskanie lezac','Sztanga/hantle','Klatka, barki, trojglowe'],['Wyciskanie nad glowa','Sztanga stojac','Barki, trojglowe'],['Dipy','Dragi rownolegle','Klatka dol, trojglowe'],['Unoszenie boczne','Hantle','Deltoidy boczne']]):kb?t([['Developpe KB sol','KB une/deux mains','Pectoraux, triceps'],['Press KB debout','Overhead','Epaules, triceps'],['Push press KB','Avec jambes','Epaules, puissance'],['Pompes lestees','KB dos','Pectoraux, core']],[['KB floor press','Single/double KB','Chest, triceps'],['KB overhead press','Standing','Shoulders, triceps'],['KB push press','Leg drive','Shoulders, power'],['Weighted push-up','KB on back','Chest, core']],[['Wyciskanie KB lezac','KB jedna/dwie rece','Klatka, trojglowe'],['Wyciskanie KB stojac','KB nad glowa','Barki, trojglowe'],['Push press KB','Z pomoca nog','Barki, moc'],['Pompki z obciazeniem','KB na plecach','Klatka, core']]):t([['Pompes','Large/serre/incline','Pectoraux, triceps'],['Pompes diamant','Mains proches','Triceps'],['Pike push-up','Hanches levees','Epaules'],['Dips chaise','Chaise/banc','Triceps']],[['Push-ups','Wide/close/incline','Chest, triceps'],['Diamond push-ups','Hands close','Triceps'],['Pike push-up','Hips elevated','Shoulders'],['Chair dips','Chair or bench','Triceps']],[['Pompki','Szerokie/waskie/skos','Klatka, trojglowe'],['Pompki diamentowe','Rece blisko','Trojglowe'],['Pike push-up','Biodra uniesione','Barki'],['Dipy na krzesl','Krzeslo/lawka','Trojglowe']]);
+    var pull=gym?t([['Tractions/Lat pulldown','Large/serre','Dos, biceps'],['Rowing barre','Prono/supination','Dos moyen, biceps'],['Tirage poulie basse','Cable assis','Dorsal, biceps'],['Curl biceps','Barre/halt.','Biceps']],[['Pull-ups/Lat pulldown','Wide/close grip','Back, biceps'],['Barbell row','Pronate/supinate','Mid back, biceps'],['Seated cable row','Low pulley','Lats, biceps'],['Bicep curl','Barbell/dumbbells','Biceps']],[['Podciaganie/Lat pulldown','Szeroki/waski chwyt','Plecy, dwuglowe'],['Wiosla ze sztanga','Podchwy/nachwy','Srodek plecow, dwugl.'],['Wiosla siedzone','Dolna wyciag','Najszerszy, dwugl.'],['Uginanie dwugl.','Sztanga/hantle','Dwuglowe']]):kb?t([['Rowing KB une main','Genou sur banc','Dorsal, biceps'],['Swing KB','Puissance hanche','Dos, fessiers, ischio'],['Soulevé de terre KB','Sol','Dos, ischio, fessiers'],['Halos KB','Rotation tete','Mobilite epaule']],[['Single-arm KB row','Knee on bench','Lats, biceps'],['KB swing','Hip drive','Back, glutes, hamstrings'],['KB deadlift','Floor','Back, hamstrings, glutes'],['KB halos','Around head','Shoulder mobility']],[['Wiosla KB jednorecznie','Kolano na lawce','Najszerszy, dwugl.'],['Swing KB','Naped bioder','Plecy, posladki, dwugl. uda'],['Martwy ciag KB','Podloga','Plecy, dwugl. uda, posladki'],['Halos KB','Wokol glowy','Mobilnosc barkow']]):t([['Tractions','Prise large','Dos, biceps'],['Rows inverses','Table/barre basse','Dos moyen'],['Superman','Sol, maintien','Erecteurs'],['Curl serviette','Porte+serviette','Biceps']],[['Pull-ups','Wide grip','Back, biceps'],['Inverted rows','Table/low bar','Mid back'],['Superman hold','Floor hold','Spinal erectors'],['Towel curl','Door + towel','Biceps']],[['Podciaganie','Szeroki chwyt','Plecy, dwugl.'],['Wiosla odwrocone','Stol/niska drazek','Srodek plecow'],['Superman','Podloga, trzymaj','Prostowniki grzbietu'],['Uginanie z recznikiem','Drzwi+recznik','Dwuglowe']]);
+    var lower=gym?t([['Squat barre','Barre dos/avant','Quad, fessiers, core'],['Soulevé de terre','Barre','Chaine post. complete'],['Fentes marchees','Halteres','Quad, fessiers'],['Hip thrust','Barre/machine','Fessiers'],['Leg press','Machine','Quad, fessiers']],[['Back squat','Barbell','Quads, glutes, core'],['Deadlift','Barbell','Full posterior chain'],['Walking lunges','Dumbbells','Quads, glutes, balance'],['Hip thrust','Barbell/machine','Glutes'],['Leg press','Machine','Quads, glutes']],[['Przysiad ze sztanga','Sztanga z tylu/przodu','Czworogl., posladki, core'],['Martwy ciag','Sztanga','Caly lancuch tylny'],['Wypadni marsz','Hantle','Czworogl., posladki'],['Hip thrust','Sztanga/maszyna','Posladki'],['Suwnica nozna','Maszyna','Czworogl., posladki']]):kb?t([['Goblet squat KB','KB poitrine','Quad, fessiers, core'],['Romanian DL KB','Genoux souples','Ischio, fessiers'],['Fentes KB','KB chaque main','Quad, fessiers'],['Swing KB','Puissance hanche','Fessiers, ischio, dos'],['Step-up KB','Banc + KB','Quad, fessiers'],['Sumo DL KB','Pieds larges','Ischio int., fessiers']],[['KB goblet squat','KB at chest','Quads, glutes, core'],['KB Romanian DL','Soft knees','Hamstrings, glutes'],['KB lunges','KB each hand','Quads, glutes'],['KB swing','Hip drive','Glutes, hamstrings, back'],['KB step-up','Box + KB','Quads, glutes, balance'],['KB sumo DL','Wide stance','Inner hamstrings, glutes']],[['Goblet squat KB','KB przy klatce','Czworogl., posladki, core'],['Romanian DL KB','Miekkie kolana','Dwugl. uda, posladki'],['Wypadni KB','KB w kazda reke','Czworogl., posladki'],['Swing KB','Naped bioder','Posladki, dwugl. uda, plecy'],['Step-up KB','Lawka + KB','Czworogl., posladki'],['Sumo DL KB','Szerokie stopy','Dwugl. wewn., posladki']]):t([['Squat','Profond, controle','Quad, fessiers'],['Fentes alternees','En place/marchees','Quad, fessiers'],['Hip thrust','Epaules sur banc','Fessiers'],['DL unilateral','Equilibre','Ischio, fessiers'],['Wall sit','Maintien iso','Quad']],[['Bodyweight squat','Deep, controlled','Quads, glutes'],['Alternating lunges','In place/walking','Quads, glutes'],['Bodyweight hip thrust','Shoulders on bench','Glutes'],['Single-leg DL','Balance','Hamstrings, glutes'],['Wall sit','Isometric hold','Quads']],[['Przysiad BW','Gleboko, kontrolowanie','Czworogl., posladki'],['Wypadni naprzemienne','W miejscu/marsz','Czworogl., posladki'],['Hip thrust BW','Barki na lawce','Posladki'],['Martwy ciag jednostr.','Rownowaqa','Dwugl. uda, posladki'],['Wall sit','Trzymanie izomet.','Czworogl.']]);
+    var powEx=t([
+    ['Box jump','Boite ou step - max effort','Puissance jambes, explosivite'],
+    ['Squat jump','Poids corps ou leger','Puissance, coordination'],
+    ['Medicine ball slam','MB contre sol','Puissance totale, core'],
+    ['Sprint 10-20m','Plat ou cote','Vitesse, agilite'],
+    ['Lateral shuffle','5-10m aller-retour','Agilite, changement direction'],
+    ['Single-leg hop','Sur place ou distance','Puissance unilaterale, equilibre'],
+    ['Broad jump','Distance maximale','Puissance horizontale'],
+    ['Agility ladder','Differents patterns','Coordination, vitesse pieds']
+  ],[
+    ['Box jump','Box or step - max effort','Leg power, explosiveness'],
+    ['Squat jump','Bodyweight or light load','Power, coordination'],
+    ['Medicine ball slam','MB to floor','Full body power, core'],
+    ['10-20m sprint','Flat or hill','Speed, acceleration'],
+    ['Lateral shuffle','5-10m shuttle','Agility, direction change'],
+    ['Single-leg hop','On spot or for distance','Unilateral power, balance'],
+    ['Broad jump','Maximum distance','Horizontal power'],
+    ['Agility ladder','Various patterns','Coordination, foot speed']
+  ]);
+  var core=t([['Planche frontale','30-60 sec','Core ant., transverse'],['Planche laterale','20-45 sec/cote','Obliques'],['Dead bug','Lent, controle','Core stabilisateur'],['Russian twist','KB/poids','Obliques, rotation'],['Releves de jambes','Suspendu/sol','Abdos bas'],['Pallof press','Elastique/cable','Anti-rotation']],[['Plank','30-60 sec hold','Anterior core'],['Side plank','20-45 sec/side','Obliques'],['Dead bug','Slow, controlled','Stabiliser core'],['Russian twist','KB or weight','Obliques, rotation'],['Leg raises','Hanging or floor','Lower abs'],['Pallof press','Band or cable','Anti-rotation']],[['Deska przodem','30-60 sek trzymanie','Core anterieur'],['Deska bokiem','20-45 sek/strone','Skosy'],['Dead bug','Wolno, kontrolowanie','Stabilizacja core'],['Russian twist','KB lub ciezar','Skosy, rotacja'],['Unoszenie nog','Zwis lub podloga','Dolny brzuch'],['Pallof press','Elastik lub kabel','Antyrotacja']]);
+
+    var ndays=tr.days;
+    var sess;
+    if(ndays<=2){sess=[{n:t('Seance A - Full Body Tirage/Bas','Session A - Full Body Pull/Lower','Trening A - Cale Cialo Ciag/Nogi'),ex:lower.slice(0,3).concat(pull.slice(0,2)).concat(core.slice(0,2))},{n:t('Seance B - Full Body Poussee/Haut','Session B - Full Body Push/Upper','Trening B - Cale Cialo Pchanie/Gora'),ex:push.slice(0,3).concat(lower.slice(3,5)).concat(core.slice(2,4))}];}
+    else if(ndays===3){sess=[{n:t('Seance A - Poussee','Session A - Push','Trening A - Pchanie'),ex:push.concat(core.slice(0,2))},{n:t('Seance B - Tirage','Session B - Pull','Trening B - Ciagnienie'),ex:pull.concat(core.slice(2,4))},{n:t('Seance C - Jambes + Core','Session C - Legs + Core','Trening C - Nogi + Core'),ex:lower.concat(core.slice(0,3))}];}
+    else if(ndays===4){sess=[{n:t('Seance A - Haut Force','Session A - Upper Strength','Trening A - Gora Sila'),ex:push.slice(0,2).concat(pull.slice(0,2)).concat(core.slice(0,2))},{n:t('Seance B - Bas Force','Session B - Lower Strength','Trening B - Dol Sila'),ex:lower.slice(0,3).concat(core.slice(2,4))},{n:t('Seance C - Haut Hypertrophie','Session C - Upper Hypertrophy','Trening C - Gora Hipertrofia'),ex:push.slice(1,4).concat(pull.slice(1,3)).concat(core.slice(0,2))},{n:t('Seance D - Bas Hypertrophie','Session D - Lower Hypertrophy','Trening D - Dol Hipertrofia'),ex:lower.slice(2,5).concat(core.slice(3,5))}];}
+    else{sess=[{n:t('Seance A - Poussee','Session A - Push','Trening A - Pchanie'),ex:push.concat(core.slice(0,2))},{n:t('Seance B - Tirage','Session B - Pull','Trening B - Ciagnienie'),ex:pull.concat(core.slice(2,3))},{n:t('Seance C - Jambes','Session C - Legs','Trening C - Nogi'),ex:lower.concat(core.slice(0,2))},{n:t('Seance D - Haut','Session D - Upper','Trening D - Gora'),ex:push.slice(0,2).concat(pull.slice(0,2)).concat(core.slice(3,5))},{n:t('Seance E - Bas + Core','Session E - Lower + Core','Trening E - Dol + Core'),ex:lower.slice(1,4).concat(core)}];
+    if(isPow && ndays>=3){
+      // Replace last session with power/agility session
+      sess[sess.length-1]={n:t('Seance Puissance & Agilite','Power & Agility Session','Trening Moc & Zwinnosc'),ex:powEx.slice(0,4).concat(lower.slice(0,2)).concat(core.slice(0,2))};
+      // Add plyometrics note to second session
+      if(sess.length>=2) sess[1].n+=' + '+t('Pliometrie','Plyometrics','Pliometria');
+    }}
+
+    sess.forEach(function(s){
+      html+='<h3 style="color:#1565c0;margin-top:14px">'+s.n+'</h3>';
+      html+=tbl(t(['Exercice','Variation / Outil','Muscles cibles','Sets x Reps','Repos'],['Exercise','Variation / Tool','Target muscles','Sets x Reps','Rest'],['Cwiczenie','Wariant / Sprzet','Docelowe miesnie','Serie x Powt.','Odpoczynek']),s.ex.map(function(ex,i){return[ex[0],ex[1],ex[2],i===0&&isMuscleT&&!isBeg?'4-5 x 5-6':scheme,i<2?restStr:restMain];}), [.22,.20,.23,.20,.15],true,true);
+    });
+
+    html+='<h2 class="blue-head">'+t('Recuperation & conseils','Recovery & Tips','Regeneracja i wskazowki')+'</h2>';
+    if(isPow){
+      html+=sub(t('Prevention des blessures (sport de contact)','Injury prevention (contact sport)','Zapobieganie kontuzjom (sport kontaktowy)'));
+      html+=bul(FR?['Toujours echauffer les chevilles, genoux et hanches avant les sprints et sauts','Travail d atterrissage : apprends a absorber les chocs avec les genoux fleches, pas tendus','Renforcement des ischio-jambiers (Nordic curl) - reduit le risque de claquage de 50%','Core stability : un core fort protege le dos lors des contacts et placages','Deceleration : entraine-toi a freiner aussi fort que tu acceleres - reduites les blessures au genou']:['Always warm up ankles, knees and hips before sprints and jumps','Landing mechanics: absorb impact with bent knees, never locked','Nordic hamstring curl - reduces hamstring tear risk by ~50%','Core stability: a strong core protects the back in tackles and contact','Deceleration training: train to brake as hard as you accelerate - reduces knee injuries']);
+    }
+    html+=bul([isOld?t('A '+d.age+' ans : 48h min entre seances pour les memes muscles','At '+d.age+': minimum 48h between sessions for same muscles'):t('48-72h entre seances pour les memes muscles','48-72h between sessions for the same muscles','48-72h miedzy treningami tych samych miesni'),isMuscleT?t('Le muscle se construit pendant la recuperation','Muscle is built during recovery - respect rest days','Miesnie rosna podczas regeneracji - szanuj dni odpoczynku'):t('Jours repos actifs : marche, mobilite, etirements','Rest days are active: walking, mobility, stretching','Aktywne dni odpoczynku: spacer, mobilnosc, rozciaganie'),t('Sommeil 7-9h minimum - essentiel pour croissance et perte de graisse','Sleep 7-9h minimum - essential for muscle growth and fat loss','Sen minimum 7-9h - kluczowy dla budowy miesni i utraty tluszczu'),t('Post-seance : shake proteine 60-90 min + glucides (banane, riz)','Post-session: protein shake 60-90 min + carbs (banana, rice)','Po treningu: shake proteinowy 60-90 min + weglowodany (banan, ryz)')]);
+
+    if(isOld){
+      html+='<h3 class="blue-h3">'+t('Mobilite recommandee (2-3x/sem)','Recommended Mobility (2-3x/week)','Zalecana mobilnosc (2-3x/tydz)')+'</h3>';
+      html+=tbl(t(['Exercice','Duree','Zone'],['Exercise','Duration','Area'],['Cwiczenie','Czas','Obszar']),t([['Hip 90/90','2 min','Hanche, rotation'],['Cat-cow','1 min','Colonne vertebrale'],['World greatest stretch','1 min/cote','Full body'],['Banded pull-apart','2x15','Epaules, coiffe'],['Leg swing','10x/jambe','Hanche, ischio']],[['Hip 90/90','2 min','Hip, rotation'],['Cat-cow','1 min','Spine mobility'],['World greatest stretch','1 min/side','Full body'],['Banded pull-apart','2x15','Shoulders, rotator cuff'],['Leg swing','10x/leg','Hip, hamstrings']],[['Hip 90/90','2 min','Biodro, rotacja'],['Cat-cow','1 min','Kregoslup'],['World greatest stretch','1 min/strone','Cale cialo'],['Banded pull-apart','2x15','Barki, stożek rotatorow'],['Wahadlo nogi','10x/noge','Biodro, dwugl. uda']]),[.40,.25,.35],true);
+    }
+    html+=box([t('Note les charges apres chaque seance. Reevalue le programme toutes les 6-8 semaines.','Log your lifts after every session. Reassess the programme every 6-8 weeks.','Zapisuj ciezary po kazdym treningu. Oceń program co 6-8 tygodni.')],'#e3f2fd');
+    html+='</div>';
+  }
+
+  html+='<div class="footer">';
+  html+='<p style="font-size:8.5px;font-weight:800;color:#2E7D32;letter-spacing:.08em">ELIZA SKANDER</p>';
+  html+='<p style="font-size:7.5px;color:#888">'+t('Coach Nutrition & Performance','Nutrition & Performance Coach','Dietetyk Sportowy')+'</p>';
+  var tlocal=TX[d.lang]||TX['en'];
+  html+='<p style="font-size:7.5px;color:#2E7D32;margin-top:1px">'+tlocal.coachContact+'</p>';
+  html+='<p style="font-size:7px;color:#bbb;margin-top:2px">'+t('Ce plan est personnel et confidentiel.','This plan is personal and confidential.','Ten plan jest osobisty i poufny.')+'</p></div>';
+  return html;
+}
+</script>
+</body>
+</html>
