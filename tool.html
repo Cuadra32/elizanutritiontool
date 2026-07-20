@@ -348,6 +348,16 @@ function buildPlanHTML(d) {
   var isOld=d.age>=50,isMus=d.goal==='muscle_gain',isFat=d.goal==='fat_loss';
   var isAct=d.act==='active'||d.act==='very_active',isSed=d.act==='sedentary'||d.act==='light',isMod=d.act==='moderate';
   var isVeg=d.diet==='vegetarian',isPesc=d.diet==='pescatarian',isNoFish=d.diet==='nofish';
+  // Nutrition-note keyword adaptations
+  var _nn=(d.nutnotes||'').toLowerCase();
+  var isLactose=/lactose|dairy.?free|intol[eé]ran[cs]|lait|milk/i.test(_nn);
+  var isGluten=/gluten|c[oœe]lia[ck]/i.test(_nn);
+  var isNutFree=/nut.?allerg|peanut|arachide|orzech.*alerg/i.test(_nn);
+  // Training-note keyword adaptations
+  var _tn=(d.training&&d.training.notes||'').toLowerCase();
+  var hasKnee=/knee|genou|kolano/i.test(_tn);
+  var hasBack=/\bback\b|lower.?back|\bdos\b|\blumbar|plec|kregoslup/i.test(_tn);
+  var hasShoulder=/shoulder|[eé]paule|bark[ió]/i.test(_tn);
   var isPow=d.goal==='power_agility',isImprove=d.goal==='improve_fitness';
   var deficit=Math.round(m.tdee-(m.cl+m.ch)/2),surplus=Math.round((m.cl+m.ch)/2-m.tdee);
   var pPerKg=Math.round(m.pl/d.weight*10)/10;
@@ -544,6 +554,16 @@ function buildPlanHTML(d) {
 
   if(d.notes) html+='<div class="box box-grey"><p><strong>'+t('Notes coach','Coach notes','Notatki trenera')+':</strong> '+d.notes+'</p></div>';
   if(d.nutnotes) html+='<div class="box box-amber"><p><strong>'+t('Notes nutritionnelles','Nutrition notes','Notatki zywieniowe')+':</strong> '+d.nutnotes+'</p></div>';
+
+  // Auto-adaptation summary
+  var _adapt=[];
+  if(isLactose) _adapt.push(t('Lactose : produits laitiers remplaces par alternatives sans lactose','Lactose: dairy swapped for lactose-free alternatives','Laktoza: nabiał zamieniony na alternatywy bez laktozy'));
+  if(isGluten) _adapt.push(t('Gluten : pain et pâtes remplaces par options sans gluten','Gluten: bread & pasta swapped for gluten-free options','Gluten: chleb i makaron zamienione na bezglutenowe'));
+  if(isNutFree) _adapt.push(t('Noix : remplacees par graines (tournesol, courge)','Nuts: replaced with seeds (sunflower, pumpkin)','Orzechy: zamienione na pestki (slonecznik, dynia)'));
+  if(hasKnee) _adapt.push(t('Genou : fentes remplacees par step-ups/leg press','Knee: lunges replaced with step-ups/leg press','Kolano: wypadni zamienione na step-up/suwnica'));
+  if(hasBack) _adapt.push(t('Dos : soulevé de terre remplacé par hip thrust','Back: deadlift replaced with hip thrust/leg curl','Plecy: martwy ciag zamieniony na hip thrust'));
+  if(hasShoulder) _adapt.push(t('Epaule : développé militaire remplacé par press incliné','Shoulder: overhead press replaced with incline press','Bark: wyciskanie nad glowa zamienione na skos'));
+  if(_adapt.length) html+='<div class="box box-green"><p><strong>'+t('Adaptations automatiques','Auto-adaptations applied','Automatyczne dostosowania')+':</strong></p>'+_adapt.map(function(a){return '<p>• '+a+'</p>';}).join('')+'</div>';
 
   html+='<div class="tip">';
   html+='<div class="tip-title">'+t('Comment utiliser ce plan','How to use this plan','Jak uzywac tego planu')+'</div>';
@@ -881,6 +901,18 @@ function buildPlanHTML(d) {
   ]);
   var core=t([['Planche frontale','30-60 sec','Core ant., transverse'],['Planche laterale','20-45 sec/cote','Obliques'],['Dead bug','Lent, controle','Core stabilisateur'],['Russian twist','KB/poids','Obliques, rotation'],['Releves de jambes','Suspendu/sol','Abdos bas'],['Pallof press','Elastique/cable','Anti-rotation']],[['Plank','30-60 sec hold','Anterior core'],['Side plank','20-45 sec/side','Obliques'],['Dead bug','Slow, controlled','Stabiliser core'],['Russian twist','KB or weight','Obliques, rotation'],['Leg raises','Hanging or floor','Lower abs'],['Pallof press','Band or cable','Anti-rotation']],[['Deska przodem','30-60 sek trzymanie','Core anterieur'],['Deska bokiem','20-45 sek/strone','Skosy'],['Dead bug','Wolno, kontrolowanie','Stabilizacja core'],['Russian twist','KB lub ciezar','Skosy, rotacja'],['Unoszenie nog','Zwis lub podloga','Dolny brzuch'],['Pallof press','Elastik lub kabel','Antyrotacja']]);
 
+    // Injury-aware exercise swaps
+    function _swapEx(arr,pat,rep){for(var i=0;i<arr.length;i++){if(pat.test(arr[i][0])){arr[i]=rep;break;}}}
+    if(hasKnee){
+      _swapEx(lower,/lunge|fente|wypad/i,[t('Step-ups','Step-ups','Step-up'),t('Banc + halteres','Bench + dumbbells','Lawka + hantle'),t('Quad, fessiers, equilibre','Quads, glutes, balance','Czworogl., posladki, rownowaga')]);
+    }
+    if(hasBack){
+      _swapEx(lower,/deadlift|soulev|martwy/i,[t('Hip thrust','Hip thrust','Hip thrust'),t('Barre/machine','Barbell/machine','Sztanga/maszyna'),t('Fessiers, ischio','Glutes, hamstrings','Posladki, dwugl. uda')]);
+    }
+    if(hasShoulder){
+      _swapEx(push,/overhead|militaire|nad glowa/i,[t('Developpe incline','Incline press','Wyciskanie na skosie'),t('Banc incline halteres','Incline bench dumbbells','Lawka skosna hantle'),t('Pecto haut, epaules (epargne epaule)','Upper chest, shoulders (shoulder-safe)','Gorna klatka, barki (bezp. dla barkow)')]);
+    }
+
     var ndays=tr.days;
     var sess;
     if(ndays<=2){sess=[{n:t('Seance A - Full Body Tirage/Bas','Session A - Full Body Pull/Lower','Trening A - Cale Cialo Ciag/Nogi'),ex:lower.slice(0,3).concat(pull.slice(0,2)).concat(core.slice(0,2))},{n:t('Seance B - Full Body Poussee/Haut','Session B - Full Body Push/Upper','Trening B - Cale Cialo Pchanie/Gora'),ex:push.slice(0,3).concat(lower.slice(3,5)).concat(core.slice(2,4))}];}
@@ -924,6 +956,62 @@ function buildPlanHTML(d) {
   html+='<p style="margin-top:12px"><strong>Eliza Skander</strong><br>'+t('Coach Nutrition & Performance · Geneve','Nutrition & Performance Coach · Geneva','Trener Zywienia i Wydajnosci · Genewa')+'</p>';
   html+='<div class="closing-small">'+t('Ce plan est personnel et confidentiel. Ne pas redistribuer.','This plan is personal and confidential. Do not redistribute.','Ten plan jest osobisty i poufny. Nie rozpowszechniac.')+'</div>';
   html+='</div>';
+
+  // ── Nutrition-note food substitutions (post-process HTML) ──
+  if(isLactose){
+    html=html.replace(/100g skyr/g,t('100g skyr/yaourt sans lactose','100g skyr/lactose-free yogurt','100g skyr/jogurt bez laktozy'));
+    html=html.replace(/200g skyr/g,t('200g skyr/yaourt sans lactose','200g skyr/lactose-free yogurt','200g skyr/jogurt bez laktozy'));
+    html=html.replace(/Skyr or Greek yogurt/g,'Skyr or lactose-free yogurt');
+    html=html.replace(/Skyr ou yaourt grec/g,'Skyr ou yaourt sans lactose');
+    html=html.replace(/Skyr lub jogurt grecki/g,'Skyr lub jogurt bez laktozy');
+    html=html.replace(/skyr or Greek yogurt/g,'skyr or lactose-free yogurt');
+    html=html.replace(/yaourt grec/g,'yaourt sans lactose');
+    html=html.replace(/Greek yogurt/g,'lactose-free yogurt');
+    html=html.replace(/jogurt grecki/g,'jogurt bez laktozy');
+    html=html.replace(/Yogurt\+almonds/g,'LF yogurt+almonds');
+    html=html.replace(/Yaourt\+amandes/g,'Yaourt SL+amandes');
+    html=html.replace(/Jogurt\+migdaly/g,'Jogurt BL+migdaly');
+    html=html.replace(/Cheese 200g/g,'Aged cheese 200g (low lactose)');
+    html=html.replace(/Fromage 200g/g,'Fromage affine 200g (faible lactose)');
+    html=html.replace(/Ser 200g/g,'Ser dojrzaly 200g (malo laktozy)');
+  }
+  if(isGluten){
+    html=html.replace(/wholemeal toast/g,'GF bread');
+    html=html.replace(/wholemeal bread/g,'GF bread');
+    html=html.replace(/Wholemeal bread/g,'GF bread');
+    html=html.replace(/pain complet/g,'pain sans gluten');
+    html=html.replace(/Pain complet/g,'Pain sans gluten');
+    html=html.replace(/chleb pelnoziarnisty/g,'chleb bezglutenowy');
+    html=html.replace(/Chleb pelnoziarnisty/g,'Chleb bezglutenowy');
+    html=html.replace(/30g oats/g,'30g GF oats');
+    html=html.replace(/flocons d avoine/g,'flocons sans gluten');
+    html=html.replace(/Flocons d avoine/g,'Flocons sans gluten');
+    html=html.replace(/platki owsiane/g,'platki bezglutenowe');
+    html=html.replace(/Platki owsiane/g,'Platki bezglutenowe');
+    html=html.replace(/>Pasta</g,'>GF pasta<');
+    html=html.replace(/>Pates</g,'>Pates sans gluten<');
+    html=html.replace(/>Makaron</g,'>Makaron bezglutenowy<');
+    html=html.replace(/\+bread/g,'+GF bread');
+    html=html.replace(/\+pain/g,'+pain SG');
+    html=html.replace(/\+chleb/g,'+chleb BG');
+    html=html.replace(/\+toast/g,'+GF toast');
+    html=html.replace(/\+tost/g,'+tost BG');
+  }
+  if(isNutFree){
+    html=html.replace(/peanut butter/g,'seed butter (tahini)');
+    html=html.replace(/beurre cacahuete/g,'beurre de graines (tahini)');
+    html=html.replace(/maslo orzechowe/g,'maslo z pestek (tahini)');
+    html=html.replace(/Almonds, nuts/g,'Seeds (sunflower, pumpkin)');
+    html=html.replace(/Amandes, noix/g,'Graines (tournesol, courge)');
+    html=html.replace(/Migdaly, orzechy/g,'Pestki (slonecznik, dynia)');
+    html=html.replace(/almonds/g,'seeds');
+    html=html.replace(/amandes/g,'graines');
+    html=html.replace(/migdaly/g,'pestki');
+    html=html.replace(/Fruit\+nuts/g,'Fruit+seeds');
+    html=html.replace(/Fruit\+noix/g,'Fruit+graines');
+    html=html.replace(/Owoc\+orzechy/g,'Owoc+pestki');
+  }
+
   return html;
 }
 
