@@ -16,13 +16,13 @@ module.exports = async function handler(req, res) {
     basic: {
       name: 'Nutrition Plan — Basic',
       description: 'Custom macro calculation + 7-day meal plan as PDF',
-      amount: 900,
+      amount: 4999,
       currency: 'chf',
     },
     complete: {
       name: 'Nutrition Plan — Complete',
       description: 'Nutrition + training plan — the full package',
-      amount: 1900,
+      amount: 6999,
       currency: 'chf',
     },
   };
