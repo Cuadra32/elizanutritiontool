@@ -8,9 +8,10 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { tier } = req.body || {};
+  const { tier, coach } = req.body || {};
   const origin = req.headers.origin || req.headers.referer || 'https://nutritionworkout.app';
   const baseUrl = origin.replace(/\/$/, '');
+  const coachParam = coach ? '&coach=' + encodeURIComponent(coach) : '';
 
   const prices = {
     basic: {
@@ -47,8 +48,8 @@ module.exports = async function handler(req, res) {
           quantity: 1,
         },
       ],
-      success_url: `${baseUrl}/tool.html?session_id={CHECKOUT_SESSION_ID}&tier=${tier}`,
-      cancel_url: `${baseUrl}/#pricing`,
+      success_url: `${baseUrl}/tool.html?session_id={CHECKOUT_SESSION_ID}&tier=${tier}${coachParam}`,
+      cancel_url: `${baseUrl}/${coach ? '?coach=' + encodeURIComponent(coach) + '#pricing' : '#pricing'}`,
       metadata: { tier },
     });
 

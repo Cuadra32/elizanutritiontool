@@ -8,6 +8,7 @@
 <meta name="description" content="Generate a personalised nutrition and training plan in seconds. Custom macros, meal plans, and workout programmes tailored to your body, goals, and diet. By Eliza Skander, Geneva.">
 <script>
 var coachConfig = {
+  slug: 'eliza-skander',
   name: 'Eliza Skander',
   location: 'Geneva',
   email: 'elizaskander@yahoo.com',
@@ -18,6 +19,7 @@ var coachConfig = {
   colorLight: '#e8f5e9',
   colorBorder: '#a5d6a7'
 };
+var coachSlug=(new URLSearchParams(window.location.search)).get('coach')||'';
 </script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -188,13 +190,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 </div>
 
 <script>
-// Apply coachConfig branding to page elements
-(function(c){
+function applyBranding(c){
   document.getElementById('hero-badge').innerHTML='🥗 By '+c.name+' · '+c.location;
   var m=document.getElementById('pro-mailto');
   m.href='mailto:'+c.email+'?subject=Pro%20Coach%20Access&body=Hi%2C%20I\'m%20interested%20in%20the%20Pro%20Coach%20plan.';
   document.getElementById('foot-text').innerHTML='Made by <a href="'+c.websiteUrl+'" target="_blank" rel="noopener">'+c.name+'</a> · Personal Trainer & Nutrition Coach, '+c.location;
-})(coachConfig);
+  var btns=document.querySelectorAll('.tier-btn');
+  btns.forEach(function(b){b.setAttribute('data-coach',c.slug||'')});
+}
+applyBranding(coachConfig);
+if(coachSlug){
+  var x=new XMLHttpRequest();
+  x.open('GET','/api/coach-config?slug='+encodeURIComponent(coachSlug),true);
+  x.onload=function(){
+    if(x.status===200){try{var cfg=JSON.parse(x.responseText);for(var k in cfg)coachConfig[k]=cfg[k];applyBranding(coachConfig)}catch(e){}}
+  };
+  x.send();
+}
 </script>
 
 <script>
@@ -206,7 +218,7 @@ function checkout(tier) {
   fetch('/api/create-checkout', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tier: tier })
+    body: JSON.stringify({ tier: tier, coach: coachConfig.slug || '' })
   })
   .then(function(r) { return r.json(); })
   .then(function(data) {

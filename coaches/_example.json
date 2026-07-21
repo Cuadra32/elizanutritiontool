@@ -1,0 +1,21 @@
+{
+  "slug": "your-name",
+  "name": "Your Name",
+  "tagline": "Your Tagline",
+  "location": "City",
+  "locationFR": "Ville",
+  "locationPL": "Miasto",
+  "email": "you@example.com",
+  "website": "www.yoursite.com",
+  "websiteUrl": "https://www.yoursite.com",
+  "title": "Personal Trainer & Nutrition Coach",
+  "titleFR": "Coach Personnel & Nutrition",
+  "titlePL": "Trener Personalny i Zywienia",
+  "color": "#1565C0",
+  "colorDark": "#0d47a1",
+  "colorLight": "#e3f2fd",
+  "colorBg": "#f0f7ff",
+  "colorAccent": "#bbdefb",
+  "colorBorder": "#90caf9",
+  "colorMid": "#64b5f6"
+}
