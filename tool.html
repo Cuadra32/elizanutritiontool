@@ -218,9 +218,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 
 // ── White-label coach configuration ──
-// To customise for a different coach, change these values.
-// Future: loaded from API based on coach slug in URL.
+// Default config (Eliza). Overwritten by /api/coach-config if ?coach= param present.
 var coachConfig = {
+  slug: 'eliza-skander',
   name: 'Eliza Skander',
   tagline: 'Nutrition & Performance',
   location: 'Geneva',
@@ -228,6 +228,7 @@ var coachConfig = {
   locationPL: 'Genewa',
   email: 'elizaskander@yahoo.com',
   website: 'www.elizaskander.com',
+  websiteUrl: 'https://www.elizaskander.com',
   title: 'Nutrition & Performance Coach',
   titleFR: 'Coach Nutrition & Performance',
   titlePL: 'Trener Zywienia i Wydajnosci',
@@ -240,8 +241,34 @@ var coachConfig = {
   colorMid: '#81c784'
 };
 
-// Sync CSS custom properties from coachConfig (single source of truth)
-(function(){var r=document.documentElement.style;r.setProperty('--c',coachConfig.color);r.setProperty('--cd',coachConfig.colorDark);r.setProperty('--cl',coachConfig.colorLight);r.setProperty('--cbg',coachConfig.colorBg);r.setProperty('--ca',coachConfig.colorAccent);r.setProperty('--cb',coachConfig.colorBorder);r.setProperty('--cm',coachConfig.colorMid)})();
+function syncCoachCSS(){var r=document.documentElement.style;r.setProperty('--c',coachConfig.color);r.setProperty('--cd',coachConfig.colorDark);r.setProperty('--cl',coachConfig.colorLight);r.setProperty('--cbg',coachConfig.colorBg);r.setProperty('--ca',coachConfig.colorAccent);r.setProperty('--cb',coachConfig.colorBorder);r.setProperty('--cm',coachConfig.colorMid)}
+
+function syncCoachText(){
+  var cc=coachConfig;
+  TX.en.coachContact=cc.email+' | '+cc.website;
+  TX.fr.coachContact=cc.email+' | '+cc.website;
+  TX.pl.coachContact=cc.email+' | '+cc.website;
+  var t=document.querySelector('.ctitle');if(t)t.textContent=TX[UI].htitle;
+}
+
+function applyCoachConfig(cfg){
+  for(var k in cfg)coachConfig[k]=cfg[k];
+  syncCoachCSS();
+}
+
+(function(){
+  var p=new URLSearchParams(window.location.search);
+  var slug=p.get('coach');
+  if(slug){
+    var x=new XMLHttpRequest();
+    x.open('GET','/api/coach-config?slug='+encodeURIComponent(slug),true);
+    x.onload=function(){
+      if(x.status===200){try{applyCoachConfig(JSON.parse(x.responseText));syncCoachText()}catch(e){}}
+    };
+    x.send();
+  }
+  syncCoachCSS();
+})();
 
 var UI = 'en', trainOpen = false;
 

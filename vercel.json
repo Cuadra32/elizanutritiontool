@@ -1,5 +1,7 @@
 {
   "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/:path*" }
+    { "source": "/api/:path*", "destination": "/api/:path*" },
+    { "source": "/c/:slug/tool", "destination": "/tool.html?coach=:slug" },
+    { "source": "/c/:slug", "destination": "/index.html?coach=:slug" }
   ]
 }

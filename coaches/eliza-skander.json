@@ -1,0 +1,21 @@
+{
+  "slug": "eliza-skander",
+  "name": "Eliza Skander",
+  "tagline": "Nutrition & Performance",
+  "location": "Geneva",
+  "locationFR": "Geneve",
+  "locationPL": "Genewa",
+  "email": "elizaskander@yahoo.com",
+  "website": "www.elizaskander.com",
+  "websiteUrl": "https://www.elizaskander.com",
+  "title": "Nutrition & Performance Coach",
+  "titleFR": "Coach Nutrition & Performance",
+  "titlePL": "Trener Zywienia i Wydajnosci",
+  "color": "#2E7D32",
+  "colorDark": "#1b5e20",
+  "colorLight": "#e8f5e9",
+  "colorBg": "#f0faf0",
+  "colorAccent": "#c8e6c9",
+  "colorBorder": "#a5d6a7",
+  "colorMid": "#81c784"
+}
