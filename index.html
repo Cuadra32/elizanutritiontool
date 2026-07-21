@@ -6,6 +6,19 @@
 <meta name="theme-color" content="#2E7D32">
 <title>Nutrition Plan Generator — Personalised Plans by Eliza Skander</title>
 <meta name="description" content="Generate a personalised nutrition and training plan in seconds. Custom macros, meal plans, and workout programmes tailored to your body, goals, and diet. By Eliza Skander, Geneva.">
+<script>
+var coachConfig = {
+  name: 'Eliza Skander',
+  location: 'Geneva',
+  email: 'elizaskander@yahoo.com',
+  website: 'www.elizaskander.com',
+  websiteUrl: 'https://www.elizaskander.com',
+  color: '#2E7D32',
+  colorDark: '#1b5e20',
+  colorLight: '#e8f5e9',
+  colorBorder: '#a5d6a7'
+};
+</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f0f4f0;color:#1a1a1a;min-height:100vh;-webkit-font-smoothing:antialiased}
@@ -89,7 +102,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 <body>
 
 <div class="hero">
-  <div class="hero-badge">🥗 By Eliza Skander · Geneva</div>
+  <div class="hero-badge" id="hero-badge">🥗 By Eliza Skander · Geneva</div>
   <h1>Your personalised <span>nutrition plan</span> in 60 seconds</h1>
   <p>Enter your details, get a custom meal plan with exact macros, portion sizes, and weekly meal schedule — generated instantly and saved as a PDF.</p>
   <p class="hero-sub">Used by personal trainers and clients across Switzerland</p>
@@ -159,7 +172,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
     <div class="pro-price">
       <div class="amount">CHF 49</div>
       <div class="per">/ month</div>
-      <a href="mailto:elizaskander@yahoo.com?subject=Pro%20Coach%20Access&body=Hi%20Eliza%2C%20I'm%20interested%20in%20the%20Pro%20Coach%20plan%20for%20unlimited%20nutrition%20plans." class="pro-btn">Get in touch →</a>
+      <a id="pro-mailto" href="mailto:elizaskander@yahoo.com?subject=Pro%20Coach%20Access&body=Hi%20Eliza%2C%20I'm%20interested%20in%20the%20Pro%20Coach%20plan%20for%20unlimited%20nutrition%20plans." class="pro-btn">Get in touch →</a>
     </div>
   </div>
 </div>
@@ -171,8 +184,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 </div>
 
 <div class="foot">
-  <p>Made by <a href="https://www.elizaskander.com" target="_blank" rel="noopener">Eliza Skander</a> · Personal Trainer & Nutrition Coach, Geneva</p>
+  <p id="foot-text">Made by <a href="https://www.elizaskander.com" target="_blank" rel="noopener">Eliza Skander</a> · Personal Trainer & Nutrition Coach, Geneva</p>
 </div>
+
+<script>
+// Apply coachConfig branding to page elements
+(function(c){
+  document.getElementById('hero-badge').innerHTML='🥗 By '+c.name+' · '+c.location;
+  var m=document.getElementById('pro-mailto');
+  m.href='mailto:'+c.email+'?subject=Pro%20Coach%20Access&body=Hi%2C%20I\'m%20interested%20in%20the%20Pro%20Coach%20plan.';
+  document.getElementById('foot-text').innerHTML='Made by <a href="'+c.websiteUrl+'" target="_blank" rel="noopener">'+c.name+'</a> · Personal Trainer & Nutrition Coach, '+c.location;
+})(coachConfig);
+</script>
 
 <script>
 function checkout(tier) {
