@@ -225,6 +225,42 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
     </div>
 
     <div class="panel" style="margin-top:20px">
+      <h2>Payments — Stripe Connect</h2>
+      <p style="font-size:12px;color:#888;margin-bottom:16px;line-height:1.5">Connect your Stripe account to receive payments directly from your clients. We handle the checkout — you get paid automatically (minus 15% platform fee).</p>
+
+      <div id="stripe-not-connected">
+        <div style="background:#fff8e1;border:1.5px solid #ffe082;border-radius:8px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:18px">⚠️</span>
+          <span style="font-size:13px;color:#f57f17;font-weight:600">Stripe not connected — payments go to platform owner</span>
+        </div>
+        <button class="act-btn act-primary" onclick="connectStripe()" id="stripe-connect-btn" style="width:100%">Connect with Stripe →</button>
+      </div>
+
+      <div id="stripe-connected" style="display:none">
+        <div style="background:#e8f5e9;border:1.5px solid #a5d6a7;border-radius:8px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:18px">✅</span>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#2E7D32">Stripe connected</div>
+            <div style="font-size:11px;color:#666;margin-top:2px" id="stripe-account-info"></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;font-size:12px;color:#888">
+          <span>Account: <code id="stripe-account-id" style="color:#555"></code></span>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid #f0f0f0">
+        <div style="font-size:12px;color:#888;line-height:1.6">
+          <strong style="color:#555">How it works:</strong><br>
+          • Client pays via your branded page<br>
+          • Payment goes to your Stripe account<br>
+          • 15% platform fee deducted automatically<br>
+          • You see all transactions in your Stripe dashboard
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:20px">
       <h2>Config JSON</h2>
       <p style="font-size:12px;color:#888;margin-bottom:12px;line-height:1.5">Send this JSON to set up your white-label account. This contains all your branding settings.</p>
       <div class="json-box">
@@ -242,6 +278,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 <div class="toast" id="toast"></div>
 
 <script>
+var stripeAccountId='';
 function val(id){return document.getElementById(id).value.trim()}
 
 function slugify(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
@@ -269,7 +306,8 @@ function getConfig(){
     colorBg:val('f-colorBg'),
     colorAccent:val('f-colorAccent'),
     colorBorder:val('f-colorBorder'),
-    colorMid:val('f-colorMid')
+    colorMid:val('f-colorMid'),
+    stripeAccountId:stripeAccountId||''
   };
 }
 
@@ -363,6 +401,7 @@ function copyJson(){
 
 function downloadConfig(){
   var c=getConfig();
+  if(stripeAccountId)c.stripeAccountId=stripeAccountId;
   var blob=new Blob([JSON.stringify(c,null,2)],{type:'application/json'});
   var a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
@@ -374,10 +413,64 @@ function downloadConfig(){
 
 function sendConfig(){
   var c=getConfig();
+  if(stripeAccountId)c.stripeAccountId=stripeAccountId;
   var subject=encodeURIComponent('White-Label Setup: '+c.name);
   var body=encodeURIComponent('Hi Eliza,\n\nI\'d like to set up my white-label nutrition tool. Here\'s my config:\n\n'+JSON.stringify(c,null,2)+'\n\nThanks!');
   window.location.href='mailto:elizaskander@yahoo.com?subject='+subject+'&body='+body;
 }
+
+// ── Stripe Connect ──
+
+function connectStripe(){
+  var c=getConfig();
+  if(!c.email||c.email==='coach@example.com'){showToast('Please enter your email first');return}
+  var btn=document.getElementById('stripe-connect-btn');
+  btn.textContent='Connecting...';btn.style.opacity='.7';btn.style.pointerEvents='none';
+
+  fetch('/api/connect-onboard',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({coach_slug:c.slug,email:c.email,name:c.name})
+  })
+  .then(function(r){return r.json()})
+  .then(function(data){
+    if(data.url){
+      stripeAccountId=data.accountId;
+      window.location.href=data.url;
+    }else{
+      showToast('Error: '+(data.error||'Try again'));
+      btn.textContent='Connect with Stripe →';btn.style.opacity='1';btn.style.pointerEvents='auto';
+    }
+  })
+  .catch(function(){
+    showToast('Connection error');
+    btn.textContent='Connect with Stripe →';btn.style.opacity='1';btn.style.pointerEvents='auto';
+  });
+}
+
+function showStripeConnected(accountId){
+  stripeAccountId=accountId;
+  document.getElementById('stripe-not-connected').style.display='none';
+  document.getElementById('stripe-connected').style.display='block';
+  document.getElementById('stripe-account-id').textContent=accountId;
+
+  fetch('/api/connect-status?account='+encodeURIComponent(accountId))
+  .then(function(r){return r.json()})
+  .then(function(data){
+    var info=data.charges_enabled?'Charges enabled':'Onboarding incomplete';
+    if(data.payouts_enabled)info+=', payouts enabled';
+    document.getElementById('stripe-account-info').textContent=info;
+  })
+  .catch(function(){});
+}
+
+// Check URL params for Stripe return
+(function(){
+  var p=new URLSearchParams(window.location.search);
+  if(p.get('stripe')==='success'&&p.get('account')){
+    showStripeConnected(p.get('account'));
+  }
+})();
 
 update();
 </script>

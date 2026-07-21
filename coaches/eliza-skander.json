@@ -17,5 +17,7 @@
   "colorBg": "#f0faf0",
   "colorAccent": "#c8e6c9",
   "colorBorder": "#a5d6a7",
-  "colorMid": "#81c784"
+  "colorMid": "#81c784",
+  "stripeAccountId": "",
+  "isOwner": true
 }
