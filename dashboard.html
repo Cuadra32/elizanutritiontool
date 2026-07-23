@@ -109,8 +109,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
   </div>
   <div class="step">
     <div class="step-num">2</div>
-    <h4>We set you up</h4>
-    <p>Your branded page goes live within 24 hours</p>
+    <h4>You're live instantly</h4>
+    <p>Your branded page is created automatically</p>
   </div>
   <div class="step">
     <div class="step-num">3</div>
@@ -157,8 +157,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
       <button class="submit-btn" id="submit-btn" onclick="submitApplication()">Submit Application</button>
 
       <div class="success-msg" id="success-msg">
-        <h3>Application submitted!</h3>
-        <p>We'll set up your branded page and send you your unique link within 24 hours. Check your email for confirmation.</p>
+        <h3>You're live!</h3>
+        <p>Your branded page is being deployed now.</p>
       </div>
 
       <div class="pricing-note">
@@ -300,27 +300,34 @@ function submitApplication(){
 
   var btn=document.getElementById('submit-btn');
   btn.disabled=true;
-  btn.textContent='Submitting...';
+  btn.textContent='Setting up your page...';
 
   var c=getConfig();
-  var subject=encodeURIComponent('New Coach Application: '+c.name);
-  var body=encodeURIComponent(
-    'New coach application from '+c.name+'\n\n'+
-    'Email: '+c.email+'\n'+
-    'Location: '+c.location+'\n'+
-    'Website: '+(c.websiteUrl||'none')+'\n'+
-    'Tagline: '+c.tagline+'\n'+
-    'Brand color: '+c.color+'\n\n'+
-    '--- Setup config ---\n\n'+
-    JSON.stringify(c,null,2)
-  );
 
-  window.location.href='mailto:elizaskander@yahoo.com?subject='+subject+'&body='+body;
-
-  setTimeout(function(){
-    btn.style.display='none';
-    document.getElementById('success-msg').style.display='block';
-  },1000);
+  fetch('/api/coach-signup',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(c)
+  })
+  .then(function(r){return r.json().then(function(d){return{ok:r.ok,data:d}})})
+  .then(function(res){
+    if(res.ok&&res.data.success){
+      btn.style.display='none';
+      var msg=document.getElementById('success-msg');
+      msg.innerHTML='<h3>You\'re live!</h3><p>Your branded page is being deployed now. It will be ready in about 60 seconds at:</p><div class="url-box" style="margin-top:12px"><code>'+res.data.url+'</code><button class="copy-btn" onclick="navigator.clipboard.writeText(\''+res.data.url+'\');showToast(\'Link copied!\')">Copy</button></div><p style="font-size:12px;color:#888;margin-top:8px">Share this link with your clients. They\'ll see your name, colors, and branding throughout.</p>';
+      msg.style.display='block';
+      document.getElementById('coach-url').textContent=res.data.url.replace('https://','');
+    }else{
+      showToast(res.data.error||'Something went wrong. Please try again.');
+      btn.disabled=false;
+      btn.textContent='Submit Application';
+    }
+  })
+  .catch(function(){
+    showToast('Connection error. Please try again.');
+    btn.disabled=false;
+    btn.textContent='Submit Application';
+  });
 }
 
 update();
