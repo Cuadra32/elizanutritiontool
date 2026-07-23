@@ -1096,6 +1096,17 @@ function buildPlanHTML(d) {
     applyCoachConfig(cfg);
     syncCoachText();
     document.getElementById('paygate').style.display = 'none';
+    var gb = document.getElementById('genbtn');
+    gb.disabled = true;
+    gb.style.opacity = '.5';
+    gb.style.cursor = 'not-allowed';
+    gb.onclick = function(){ return false; };
+    document.getElementById('genlbl').textContent = 'Preview only — generation disabled';
+    var banner = document.createElement('div');
+    banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#ff9800;color:white;text-align:center;padding:10px;font-weight:700;font-size:14px;z-index:9999';
+    banner.textContent = 'PREVIEW MODE — This is how your clients will see your branded page';
+    document.body.prepend(banner);
+    document.body.style.paddingTop = '40px';
     return;
   }
 })();
